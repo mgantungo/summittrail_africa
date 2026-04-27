@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offline – Summit Trail Limited</title>
+<style>
+  :root { --orange: #e8622a; --black: #0a0a08; --white: #f5f3ec; --gray: #6b6c62; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Barlow', sans-serif; background: var(--black); color: var(--white); min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 40px; }
+  .icon { font-size: 80px; margin-bottom: 24px; }
+  h1 { font-family: 'Bebas Neue', sans-serif; font-size: 56px; color: var(--white); margin-bottom: 16px; }
+  p { font-size: 16px; color: var(--gray); line-height: 1.7; max-width: 400px; margin: 0 auto 32px; }
+  a { display: inline-block; background: var(--orange); color: var(--black); padding: 16px 36px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; }
+</style>
+</head>
+<body>
+  <div>
+    <div class="icon">🏔️</div>
+    <h1>You're Offline</h1>
+    <p>Even the best expeditions hit dead zones. Check your connection and try again.</p>
+    <a href="/" onclick="window.location.reload(); return false;">Retry Connection</a>
+  </div>
+</body>
+</html>

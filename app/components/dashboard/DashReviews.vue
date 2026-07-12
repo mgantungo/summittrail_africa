@@ -1,3 +1,4 @@
+<!--app/components/dashboard/DashReviews.vue-->
 <template>
   <div>
     <div class="section-label">Your Feedback</div>

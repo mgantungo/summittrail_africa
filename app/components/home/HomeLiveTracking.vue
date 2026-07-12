@@ -1,3 +1,4 @@
+<!--app/components/home/HomeLiveTracking.vue-->
 <template>
   <section class="home-tracking section" v-if="liveExpeditions.length">
 

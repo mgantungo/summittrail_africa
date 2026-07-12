@@ -1,3 +1,4 @@
+<!--app/components/home/HomeStoriesPreview.vue-->
 <template>
   <section class="stories-preview-section section">
     <div class="stories-header">

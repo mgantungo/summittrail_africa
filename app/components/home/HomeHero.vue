@@ -1,3 +1,4 @@
+<!--app/components/home/HomeHero.vue-->
 <template>
   <section class="hero">
     <div class="hero-bg" />

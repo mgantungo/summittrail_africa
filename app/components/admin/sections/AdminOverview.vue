@@ -1,3 +1,4 @@
+<!--app/components/admin/sections/AdminOverview.vue-->
 <template>
   <div>
     <div class="as-header">

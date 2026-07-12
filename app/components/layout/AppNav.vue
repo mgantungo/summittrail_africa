@@ -1,3 +1,4 @@
+<!--app/components/layout/AppNav.vue-->
 <template>
   <nav :class="['app-nav', { scrolled: isScrolled }]">
     <div class="nav-inner">

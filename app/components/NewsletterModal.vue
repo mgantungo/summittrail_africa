@@ -1,3 +1,4 @@
+<!--app/components/NewsletterModal.vue-->
 <template>
   <Transition name="fade-modal">
     <div v-if="showModal" class="newsletter-backdrop" @click.self="close">

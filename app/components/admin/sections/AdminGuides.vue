@@ -1,3 +1,4 @@
+<!--app/components/admin/sections/AdminGuides.vue-->
 <template>
   <div>
     <div class="section-label">Guide Management</div>

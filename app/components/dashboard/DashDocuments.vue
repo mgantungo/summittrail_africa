@@ -1,3 +1,4 @@
+<!--app/components/dashboard/DashDocuments.vue-->
 <template>
   <div>
     <div class="section-label">Trip Documentation</div>

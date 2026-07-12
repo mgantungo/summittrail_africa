@@ -1,3 +1,4 @@
+<!--app/components/home/HomeWhySummitTrail.vue-->
 <template>
   <section class="why-section section">
     <div class="section-label">Why Summit Trail</div>

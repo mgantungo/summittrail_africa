@@ -1,3 +1,4 @@
+<!--app/components/home/HomeUpcomingDepartures.vue-->
 <template>
   <section class="section departures-section" style="padding-top:0;">
     <div class="section-label">Upcoming Departures</div>

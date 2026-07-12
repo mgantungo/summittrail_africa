@@ -1,3 +1,4 @@
+<!--app/components/admin/sections/AdminAnalytics.vue-->
 <template>
   <div>
     <div class="section-label">Performance Intelligence</div>

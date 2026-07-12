@@ -1,3 +1,4 @@
+<!--app/components/home/HomeReviews.vue-->
 <template>
   <section class="section reviews-section">
     <div class="section-label">Verified Reviews</div>

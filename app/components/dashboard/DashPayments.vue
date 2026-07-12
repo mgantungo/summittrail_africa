@@ -1,3 +1,4 @@
+<!--app/components/dashboard/DashPayments.vue-->
 <template>
   <div>
     <div class="section-label">Financial Overview</div>

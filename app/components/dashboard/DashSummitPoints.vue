@@ -1,3 +1,4 @@
+<!--app/components/dashboard/DashSummitPoints.vue-->
 <template>
   <div>
     <div class="section-label">Loyalty Programme</div>

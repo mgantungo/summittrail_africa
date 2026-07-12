@@ -1,3 +1,4 @@
+<!--app/components/admin/AdminSidebar.vue-->
 <template>
   <aside class="admin-sidebar">
     <div class="admin-logo">

@@ -1,3 +1,4 @@
+<!--app/pages/booking/index.vue-->
 <template>
   <div class="booking-page" style="padding-top:72px;">
     <div class="booking-header section">

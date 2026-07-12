@@ -1,3 +1,4 @@
+<!--app/pages/calendar.vue-->
 <template>
   <div style="padding-top:72px;">
     <div class="section cal-hero">

@@ -1,3 +1,4 @@
+<!--app/pages/dashboard/loyalty.vue-->
 <template>
   <div class="loyalty-page" style="padding-top:72px;">
     <div class="dash-layout">

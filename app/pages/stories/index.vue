@@ -1,3 +1,4 @@
+<!--app/pages/stories/index.vue-->
 <template>
   <div style="padding-top:72px;">
     <div class="stories-hero section">

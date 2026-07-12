@@ -1,3 +1,4 @@
+<!--app/components/home/HomeFeaturedAdventures.vue-->
 <template>
   <section class="section featured-section">
     <div class="feat-header">

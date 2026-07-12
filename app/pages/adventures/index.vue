@@ -1,3 +1,4 @@
+<!--app/pages/adventures/index.vue-->
 <template>
   <div class="adventures-page" style="padding-top:72px;">
     <div class="adv-hero">

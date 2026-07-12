@@ -1,3 +1,4 @@
+<!--app/components/home/HomeFilterBar.vue-->
 <template>
   <div class="filter-bar">
     <div class="filter-inner">

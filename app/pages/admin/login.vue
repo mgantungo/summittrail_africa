@@ -1,3 +1,4 @@
+<!--app/pages/admin/login.vue-->
 <template>
   <div class="admin-login-page">
     <div class="al-card">

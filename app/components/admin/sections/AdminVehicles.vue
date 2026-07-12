@@ -1,3 +1,4 @@
+<!--app/components/admin/sections/AdminVehicles.vue-->
 <template>
   <div>
     <div class="section-label">Fleet Management</div>

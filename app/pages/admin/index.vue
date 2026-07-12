@@ -1,3 +1,4 @@
+<!--app/pages/admin/index.vue-->
 <template>
   <div class="admin-overview">
     <div class="admin-topbar">

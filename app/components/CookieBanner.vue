@@ -1,3 +1,4 @@
+<!--app/components/CookieBanner.vue-->
 <template>
   <Transition name="slide-up">
     <div v-if="!profile.cookiesAccepted" class="cookie-banner">

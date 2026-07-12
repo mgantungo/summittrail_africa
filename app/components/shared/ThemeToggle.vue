@@ -1,3 +1,4 @@
+<!--app/components/shared/ThemeToggle.vue-->
 <template>
   <div class="theme-toggle" @click="cycleTheme" :title="`Theme: ${profile.theme}`">
     <span class="theme-icon">{{ icon }}</span>

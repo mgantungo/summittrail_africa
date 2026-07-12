@@ -1,3 +1,4 @@
+<!--app/components/shared/LoginModal.vue-->
 <template>
   <div class="login-backdrop" @click.self="$emit('close')">
     <div class="login-modal">

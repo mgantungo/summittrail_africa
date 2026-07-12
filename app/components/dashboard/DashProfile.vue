@@ -1,3 +1,4 @@
+<!--app/components/dashboard/DashProfile.vue-->
 <template>
   <div>
     <div class="section-label">Account Settings</div>

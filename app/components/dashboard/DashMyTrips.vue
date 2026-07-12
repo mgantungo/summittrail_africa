@@ -1,3 +1,4 @@
+<!--app/components/dashboard/DashMyTrips.vue-->
 <template>
   <div>
     <div class="section-label">Your Expeditions</div>

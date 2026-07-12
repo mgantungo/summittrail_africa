@@ -1,3 +1,4 @@
+<!--app/components/admin/sections/AdminBookings.vue-->
 <template>
   <div>
     <div class="as-hdr">

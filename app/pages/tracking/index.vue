@@ -1,3 +1,4 @@
+<!--app/pages/tracking/index.vue-->
 <template>
   <HomeLiveTracking />
 </template>

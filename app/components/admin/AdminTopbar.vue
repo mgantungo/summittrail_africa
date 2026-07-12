@@ -1,3 +1,4 @@
+<!--app/components/admin/AdminTopbar.vue-->
 <template>
   <div class="admin-topbar">
     <div class="breadcrumb">

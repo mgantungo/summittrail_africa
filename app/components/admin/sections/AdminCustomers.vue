@@ -1,3 +1,4 @@
+<!--app/components/admin/sections/AdminCustomers.vue-->
 <template>
   <div>
     <div class="section-label">Customer Management</div>

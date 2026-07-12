@@ -1,3 +1,4 @@
+<!--app/pages/dashboard/index.vue-->
 <template>
   <div class="dashboard-page" style="padding-top:var(--nav-h);">
 

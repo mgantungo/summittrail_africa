@@ -1,3 +1,4 @@
+<!--app/components/NotificationPrompt.vue-->
 <template>
   <Transition name="slide-up">
     <div v-if="showPrompt" class="notif-prompt">

@@ -1,3 +1,4 @@
+<!--app/pages/adventures/[slug].vue-->
 <template>
   <div v-if="adv" style="padding-top:72px;">
     <!-- HERO -->

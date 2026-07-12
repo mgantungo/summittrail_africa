@@ -1,3 +1,4 @@
+<!--app/pages/index.vue-->
 <template>
   <div class="home">
     <HomeHero />

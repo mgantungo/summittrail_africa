@@ -1,3 +1,4 @@
+<!--app/error.vue-->
 <template>
   <div class="error-page">
     <div class="error-bg" />

@@ -1,3 +1,4 @@
+<!--app/components/admin/sections/AdminTrips.vue-->
 <template>
   <div>
     <div class="section-label">Expedition Management</div>

@@ -1,3 +1,4 @@
+<!--app/layouts/admin.vue-->
 <template>
   <div class="admin-shell">
     <AdminSidebar />

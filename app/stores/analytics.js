@@ -18,10 +18,14 @@ export const useAnalyticsStore = defineStore('analytics', {
       if (!process.client) return
       this.sessionId = this._generateId()
 
-      // Geo lookup
+      // Geo lookup — routed through our own server (see
+      // server/api/analytics/geo.get.js) instead of calling
+      // http://ip-api.com directly from the browser. Calling that
+      // insecure endpoint straight from an HTTPS page gets blocked by
+      // browsers as mixed content; a server-to-server call has no such
+      // restriction, and the client only ever talks to our own HTTPS origin.
       try {
-        const res = await fetch('http://ip-api.com/json?fields=country,city,regionName,countryCode,query')
-        const geo = await res.json()
+        const geo = await $fetch('/api/analytics/geo')
         if (geo.status !== 'fail') {
           this.visitorCountry = geo.country
           this.visitorCity = geo.city

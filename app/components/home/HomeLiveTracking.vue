@@ -247,7 +247,7 @@ async function loadMapsApi() {
   mapsLoading.value = true
   return new Promise((resolve) => {
     const s = document.createElement('script')
-    s.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&libraries=geometry`
+    s.src = `https://maps.googleapis.com/maps/api/js?key=${MAPS_KEY}&libraries=geometry&loading=async`
     s.async = true
     s.onload  = () => { mapsLoading.value = false; resolve(true) }
     s.onerror = () => { mapsLoading.value = false; resolve(false) }

@@ -83,7 +83,7 @@
             LIVE — Day {{ active.currentDay }} of {{ active.totalDays }}
           </div>
 
-          <div class="ht-guide-card" v-if="mapsReady">
+          <div class="ht-guide-card" v-if="mapsReady && active?.guide">
             <img :src="active.guide.avatar" :alt="active.guide.name" class="ht-guide-ava" />
             <div>
               <div class="ht-guide-name">{{ active.guide.name }}</div>
@@ -183,10 +183,10 @@
 </template>
 
 <script setup>
-import { liveExpeditions } from '~~/data/demo.js'
+const { data: liveExpeditions } = await useLiveExpeditions()
 
 // ── State ──────────────────────────────────────────────────────────────────
-const activeTrackId = ref(liveExpeditions[0]?.id)
+const activeTrackId = ref(liveExpeditions.value[0]?.id)
 const following     = ref(false)
 const mapView       = ref('satellite') // 'map' | 'satellite' | 'street'
 const mapEl         = ref(null)
@@ -206,10 +206,10 @@ const viewOptions = [
 ]
 
 // ── Computed ───────────────────────────────────────────────────────────────
-const active = computed(() => liveExpeditions.find(e => e.id === activeTrackId.value))
+const active = computed(() => liveExpeditions.value.find(e => e.id === activeTrackId.value))
 
-const totalParticipants = liveExpeditions.reduce((s, e) => s + e.participants, 0)
-const totalFollowers    = liveExpeditions.reduce((s, e) => s + e.followers,    0)
+const totalParticipants = computed(() => liveExpeditions.value.reduce((s, e) => s + e.participants, 0))
+const totalFollowers    = computed(() => liveExpeditions.value.reduce((s, e) => s + e.followers,    0))
 
 const pct = computed(() => {
   if (!active.value) return 0

@@ -10,43 +10,35 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
-    // ── Server-only secrets (never exposed to browser) ──
-    vapidPrivateKey:    process.env.VAPID_PRIVATE_KEY,
-    analyticsSecret:    process.env.ANALYTICS_SECRET,
-    smtpHost:           process.env.SMTP_HOST,
-    smtpPort:           process.env.SMTP_PORT,
-    smtpUser:           process.env.SMTP_USER,
-    smtpPass:           process.env.SMTP_PASS,
-    newsletterFrom:     process.env.NEWSLETTER_FROM,
-    newsletterFromName: process.env.NEWSLETTER_FROM_NAME,
-    stripeSecretKey:    process.env.STRIPE_SECRET_KEY,
+  // ── Server-only secrets (never exposed to browser) ──
+  vapidPrivateKey:    process.env.VAPID_PRIVATE_KEY,
+  analyticsSecret:    process.env.ANALYTICS_SECRET,
+  smtpHost:           process.env.SMTP_HOST,
+  smtpPort:           process.env.SMTP_PORT,
+  smtpUser:           process.env.SMTP_USER,
+  smtpPass:           process.env.SMTP_PASS,
+  newsletterFrom:     process.env.NEWSLETTER_FROM,
+  newsletterFromName: process.env.NEWSLETTER_FROM_NAME,
+  stripeSecretKey:    process.env.STRIPE_SECRET_KEY,
+  strapiApiToken:     process.env.STRAPI_API_TOKEN,   // NEW — server-only CMS token
 
-    // ── Public (exposed to client-side JavaScript) ──────
-    public: {
-      appName:     process.env.NUXT_PUBLIC_APP_NAME     || 'Summit Trail Limited',
-      appUrl:      process.env.NUXT_PUBLIC_APP_URL      || 'http://localhost:3250',
-      appVersion:  process.env.NUXT_PUBLIC_APP_VERSION  || '1.0.0',
+  public: {
+    appName:     process.env.NUXT_PUBLIC_APP_NAME     || 'Summit Trail Limited',
+    appUrl:      process.env.NUXT_PUBLIC_APP_URL      || 'http://localhost:3250',
+    appVersion:  process.env.NUXT_PUBLIC_APP_VERSION  || '1.0.0',
+    googleMapsKey: process.env.NUXT_PUBLIC_GOOGLE_MAPS_KEY || '',
+    vapidPublicKey: process.env.NUXT_PUBLIC_VAPID_PUBLIC_KEY || '',
+    geoApiUrl:          process.env.NUXT_PUBLIC_GEO_API_URL || 'http://ip-api.com/json',
+    googleAnalyticsId:  process.env.GOOGLE_ANALYTICS_ID    || '',
+    stripePublicKey: process.env.STRIPE_PUBLIC_KEY || '',
+    adminEmail:    process.env.NUXT_PUBLIC_ADMIN_EMAIL    || 'admin@summittrail.ug',
+    adminPassword: process.env.NUXT_PUBLIC_ADMIN_PASSWORD || 'SummitTrail2025!',
 
-      // Google Maps — set NUXT_PUBLIC_GOOGLE_MAPS_KEY in .env
-      // Get a key at https://console.cloud.google.com
-      // Required APIs: Maps JavaScript API, Street View Static API
-      googleMapsKey: process.env.NUXT_PUBLIC_GOOGLE_MAPS_KEY || '',
-
-      // Web Push
-      vapidPublicKey: process.env.NUXT_PUBLIC_VAPID_PUBLIC_KEY || '',
-
-      // Analytics
-      geoApiUrl:          process.env.NUXT_PUBLIC_GEO_API_URL || 'http://ip-api.com/json',
-      googleAnalyticsId:  process.env.GOOGLE_ANALYTICS_ID    || '',
-
-      // Payments (public keys only)
-      stripePublicKey: process.env.STRIPE_PUBLIC_KEY || '',
-
-      // Admin portal credentials (change in .env before production)
-      adminEmail:    process.env.NUXT_PUBLIC_ADMIN_EMAIL    || 'admin@summittrail.ug',
-      adminPassword: process.env.NUXT_PUBLIC_ADMIN_PASSWORD || 'SummitTrail2025!',
-    }
-  },
+    // NEW — CMS base URL, public because the browser reads adventures/
+    // guides/vehicles/stories/reviews/live-expeditions directly from it
+    strapiUrl: process.env.NUXT_PUBLIC_STRAPI_URL || 'https://cms.summittrail.visiongroup.co.ug'
+  }
+},
 
   // ── Dev server ───────────────────────────────────────
   devServer: {
@@ -108,6 +100,7 @@ export default defineNuxtConfig({
         'pikanza.newvision.co.ug',
         '.newvision.co.ug',
         'localhost',
+        'cms.summittrail.visiongroup.co.ug'
       ]
     }
   },

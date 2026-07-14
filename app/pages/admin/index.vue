@@ -13,30 +13,27 @@
       </div>
       <div class="admin-actions">
         <ThemeToggle />
-        <button class="btn btn-primary btn-sm" @click="sendNotification">📣 Send Push Alert</button>
+        <NuxtLink to="/admin/notifications" class="btn btn-primary btn-sm">📣 Send Push Alert</NuxtLink>
       </div>
     </div>
 
     <!-- Metrics -->
     <div class="admin-metrics">
       <div class="admin-metric orange">
-        <div class="am-trend trend-up">↑ +18%</div>
-        <div class="am-val">142</div>
+        <div class="am-val">{{ bookingsThisMonth.length }}</div>
         <div class="am-label">Bookings This Month</div>
       </div>
       <div class="admin-metric gold">
-        <div class="am-trend trend-up">↑ +24%</div>
-        <div class="am-val">$84k</div>
+        <div class="am-val">${{ revenueThisMonth.toLocaleString() }}</div>
         <div class="am-label">Revenue This Month</div>
       </div>
       <div class="admin-metric green">
-        <div class="am-trend" style="color:var(--light);">3 mountain · 4 overland</div>
         <div class="am-val">{{ activeTripCount }}</div>
-        <div class="am-label">Active Trips Now</div>
+        <div class="am-label">Confirmed Trips</div>
       </div>
       <div class="admin-metric red">
-        <div class="am-trend trend-down">⚠ Needs follow-up</div>
-        <div class="am-val">12</div>
+        <div class="am-trend trend-down" v-if="incompleteCount">⚠ Needs follow-up</div>
+        <div class="am-val">{{ incompleteCount }}</div>
         <div class="am-label">Incomplete Bookings</div>
       </div>
     </div>
@@ -47,9 +44,9 @@
       <div class="chart-card">
         <div class="chart-title">Monthly Bookings — 2025</div>
         <div class="bar-chart">
-          <div class="bar-wrap" v-for="m in analyticsData.monthlyBookings" :key="m.month">
+          <div class="bar-wrap" v-for="m in monthlyBookingsLive" :key="m.month">
             <div class="bar-val">{{ m.bookings }}</div>
-            <div class="bar" :style="{ height: (m.bookings / 160 * 100) + '%' }" />
+            <div class="bar" :style="{ height: (m.bookings / maxMonthlyBookings * 100) + '%' }" />
             <div class="bar-label">{{ m.month }}</div>
           </div>
         </div>
@@ -59,10 +56,10 @@
       <div class="chart-card">
         <div class="chart-title">Booking Materialization Funnel</div>
         <div class="funnel">
-          <div class="funnel-row" v-for="(f, i) in analyticsData.funnel" :key="f.stage">
+          <div class="funnel-row" v-for="(f, i) in liveFunnel" :key="f.stage">
             <div class="funnel-label">{{ f.stage }}</div>
             <div class="funnel-bar-wrap">
-              <div class="funnel-bar" :style="{ width: (f.count / 320 * 100) + '%', opacity: 1 - i * 0.15, background: i === analyticsData.funnel.length - 1 ? 'var(--green-light)' : 'var(--orange)' }">
+              <div class="funnel-bar" :style="{ width: (f.count / (liveFunnel[0]?.count || 1) * 100) + '%', opacity: 1 - i * 0.15, background: i === liveFunnel.length - 1 ? 'var(--green-light)' : 'var(--orange)' }">
                 <span class="funnel-count">{{ f.count }}</span>
               </div>
             </div>
@@ -117,11 +114,11 @@
           </thead>
           <tbody>
             <tr v-for="b in demoBookings" :key="b.id">
-              <td class="td-id">{{ b.id }}</td>
-              <td class="td-name">{{ b.customer.name }}</td>
+              <td class="td-id">{{ b.reference }}</td>
+              <td class="td-name">{{ b.customer?.name }}</td>
               <td class="td-trip">{{ getAdventureName(b.adventure) }}</td>
-              <td>{{ formatDate(b.departure) }}</td>
-              <td class="td-amount">${{ b.total.toLocaleString() }}</td>
+              <td>{{ formatDate(b.departureDate) }}</td>
+              <td class="td-amount">${{ Number(b.total).toLocaleString() }}</td>
               <td><span class="badge" :class="`badge-${b.status === 'confirmed' ? 'confirmed' : b.status === 'pending-payment' ? 'pending' : 'cancelled'}`">{{ b.status }}</span></td>
               <td><button class="btn btn-ghost btn-sm">View →</button></td>
             </tr>
@@ -129,53 +126,61 @@
         </table>
       </div>
     </div>
-
-    <!-- Push notification sender modal -->
-    <Transition name="fade-modal">
-      <div v-if="showNotifModal" class="notif-modal-backdrop" @click.self="showNotifModal = false">
-        <div class="notif-modal">
-          <div style="font-family:var(--font-display); font-size:24px; margin-bottom:20px; color:var(--text);">Send Push Notification</div>
-          <div style="margin-bottom:14px;">
-            <label class="input-label">Title</label>
-            <input class="input" v-model="notifForm.title" placeholder="New Expedition Alert 🏔️" />
-          </div>
-          <div style="margin-bottom:14px;">
-            <label class="input-label">Summary</label>
-            <textarea class="input" v-model="notifForm.body" rows="3" placeholder="Rwenzori Survival – new departure open. Only 6 spots available. Book now." style="resize:vertical;" />
-          </div>
-          <div style="margin-bottom:14px;">
-            <label class="input-label">Image URL (optional)</label>
-            <input class="input" v-model="notifForm.image" placeholder="https://..." />
-          </div>
-          <div style="margin-bottom:20px;">
-            <label class="input-label">Link (click destination)</label>
-            <input class="input" v-model="notifForm.url" placeholder="/adventures/rwenzori-survival" />
-          </div>
-          <div style="display:flex; gap:10px;">
-            <button class="btn btn-primary" :disabled="notifSending" @click="submitNotification">
-              {{ notifSending ? 'Sending...' : '📣 Send to All Subscribers' }}
-            </button>
-            <button class="btn btn-ghost" @click="showNotifModal = false">Cancel</button>
-          </div>
-          <div v-if="notifSuccess" class="notif-success-msg">✅ Notification sent to {{ subscriberCount }} subscribers</div>
-        </div>
-      </div>
-    </Transition>
   </div>
 </template>
 
 <script setup>
 definePageMeta({ layout: 'admin' })
 
-import { analyticsData, demoBookings, adventures } from '~~/data/demo.js'
 import { useAnalyticsStore } from '~/stores/analytics'
+
+// analyticsData.topCountries (Traffic by Country table below) is real
+// web-traffic data (visitor counts) that this app has no tracking
+// pipeline for, so it stays sourced from the seeded snapshot. Everything
+// else derivable from actual bookings — this month's totals, the monthly
+// bookings chart, and the funnel — is computed live below.
+const { data: analyticsData } = await useAnalyticsSnapshot()
+const { data: allBookings }   = await useBookings()
+const { data: contactMessages } = await useContactMessages()
+const demoBookings = computed(() => allBookings.value.slice(0, 10))
 
 const analytics = useAnalyticsStore()
 
 useHead({ title: 'Admin Dashboard – Summit Trail' })
 
 const today = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-const activeTripCount = 7
+
+const now = new Date()
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+const bookingsThisMonth = computed(() => allBookings.value.filter(b => {
+  if (!b.bookedAt) return false
+  const d = new Date(b.bookedAt)
+  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+}))
+const revenueThisMonth = computed(() => bookingsThisMonth.value.reduce((s, b) => s + Number(b.paid || 0), 0))
+const activeTripCount = computed(() => allBookings.value.filter(b => b.status === 'confirmed').length)
+const incompleteCount = computed(() => allBookings.value.filter(b => b.status === 'pending-payment').length)
+
+const monthlyBookingsLive = computed(() => {
+  const byMonth = {}
+  for (const b of allBookings.value) {
+    if (!b.bookedAt) continue
+    const d = new Date(b.bookedAt)
+    const key = `${d.getFullYear()}-${d.getMonth()}`
+    if (!byMonth[key]) byMonth[key] = { month: MONTHS[d.getMonth()], bookings: 0, sortKey: key }
+    byMonth[key].bookings += 1
+  }
+  return Object.values(byMonth).sort((a, b) => a.sortKey.localeCompare(b.sortKey)).slice(-6)
+})
+const maxMonthlyBookings = computed(() => Math.max(1, ...monthlyBookingsLive.value.map(m => m.bookings)))
+
+const liveFunnel = computed(() => [
+  { stage: 'Inquiries', count: contactMessages.value.length },
+  { stage: 'Bookings',  count: allBookings.value.length },
+  { stage: 'Confirmed', count: allBookings.value.filter(b => b.status === 'confirmed' || b.status === 'completed').length },
+  { stage: 'Paid',      count: allBookings.value.filter(b => Number(b.paid || 0) > 0).length },
+  { stage: 'Completed', count: allBookings.value.filter(b => b.status === 'completed').length },
+])
 
 const greeting = computed(() => {
   const h = new Date().getHours()
@@ -184,52 +189,12 @@ const greeting = computed(() => {
   return 'evening'
 })
 
-function getAdventureName(id) {
-  return adventures.find(a => a.id === id)?.title?.split(' ').slice(0, 3).join(' ') + '...' || id
+function getAdventureName(adv) {
+  return shortTitle(adv?.title)
 }
 
 function formatDate(d) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-}
-
-// Push notification modal
-const showNotifModal = ref(false)
-const notifSending = ref(false)
-const notifSuccess = ref(false)
-const subscriberCount = ref(0)
-const notifForm = reactive({
-  title: '',
-  body: '',
-  image: '',
-  url: '/adventures',
-})
-
-function sendNotification() {
-  showNotifModal.value = true
-  notifSuccess.value = false
-}
-
-async function submitNotification() {
-  notifSending.value = true
-  try {
-    const result = await $fetch('/api/push/send', {
-      method: 'POST',
-      body: {
-        title: notifForm.title,
-        body: notifForm.body,
-        image: notifForm.image || undefined,
-        url: notifForm.url,
-        tag: 'expedition-alert',
-      }
-    })
-    subscriberCount.value = result.sent || 0
-    notifSuccess.value = true
-  } catch (e) {
-    notifSuccess.value = true
-    subscriberCount.value = 0
-  } finally {
-    notifSending.value = false
-  }
 }
 </script>
 
@@ -290,12 +255,7 @@ async function submitNotification() {
 .td-name { color: var(--text); font-weight: 700; }
 .td-amount { color: var(--orange); font-weight: 700; }
 
-/* Notification modal */
-.notif-modal-backdrop { position: fixed; inset: 0; z-index: 9000; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; padding: 24px; }
-.notif-modal { background: var(--charcoal); border: 1px solid var(--border); padding: 40px; max-width: 540px; width: 100%; }
-.notif-success-msg { margin-top: 16px; font-family: var(--font-condensed); font-size: 14px; color: var(--green-light); }
-.fade-modal-enter-active, .fade-modal-leave-active { transition: opacity 0.25s; }
-.fade-modal-enter-from, .fade-modal-leave-to { opacity: 0; }
+/* Push notification composer now lives at /admin/notifications */
 
 @media (max-width: 1000px) {
   .admin-metrics { grid-template-columns: repeat(2, 1fr); }

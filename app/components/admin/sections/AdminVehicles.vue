@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { vehicles } from '~~/data/demo.js'
+const { data: vehicles } = await useVehicles()
 </script>
 
 <style scoped>

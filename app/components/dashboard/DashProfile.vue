@@ -40,7 +40,9 @@
             <input class="input" v-model="form.country" />
           </div>
         </div>
-        <button class="btn btn-primary btn-sm" style="margin-top:16px;">Save Changes</button>
+        <button class="btn btn-primary btn-sm" style="margin-top:16px;" :disabled="saving" @click="saveProfile">{{ saving ? 'Saving…' : 'Save Changes' }}</button>
+        <p v-if="saveError" class="save-error">{{ saveError }}</p>
+        <p v-if="saveSuccess" class="save-success">Saved ✓</p>
       </div>
     </div>
 
@@ -121,6 +123,30 @@ function toggleCat(c) {
   if (idx === -1) arr.push(c)
   else arr.splice(idx, 1)
 }
+
+const saving = ref(false)
+const saveError = ref(null)
+const saveSuccess = ref(false)
+
+async function saveProfile() {
+  const documentId = profile.user?.documentId || profile.user?.id
+  if (!documentId) { saveError.value = 'Not signed in.'; return }
+  saving.value = true
+  saveError.value = null
+  saveSuccess.value = false
+  try {
+    const { data: updated } = await updateCustomerProfile(documentId, {
+      name: form.name, email: form.email, phone: form.phone, country: form.country,
+    })
+    profile.login({ ...profile.user, ...updated })
+    saveSuccess.value = true
+    setTimeout(() => { saveSuccess.value = false }, 3000)
+  } catch (e) {
+    saveError.value = 'Could not save changes. Please try again.'
+  } finally {
+    saving.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -147,5 +173,7 @@ function toggleCat(c) {
 .danger-row { display:flex; justify-content:space-between; align-items:center; gap:20px; flex-wrap:wrap; }
 .danger-title { font-family:var(--font-condensed); font-size:15px; font-weight:700; color:var(--red); margin-bottom:3px; }
 .danger-sub  { font-size:13px; color:var(--gray); }
+.save-error { color:var(--red); font-size:13px; margin-top:8px; }
+.save-success { color:var(--green-light); font-size:13px; margin-top:8px; }
 @media (max-width:700px) { .profile-grid { grid-template-columns:1fr; } .prefs-grid { grid-template-columns:1fr; } }
 </style>

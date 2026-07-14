@@ -38,7 +38,7 @@
 </template>
 
 <script setup>
-import { guides } from '~~/data/demo.js'
+const { data: guides } = await useGuides()
 </script>
 
 <style scoped>

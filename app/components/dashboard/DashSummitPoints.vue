@@ -12,7 +12,7 @@
         <div class="ph-pts-label">SUMMIT POINTS</div>
         <div class="ph-level">{{ profile.level }}</div>
         <div class="ph-next" v-if="nextTier">
-          <div class="ph-next-label">{{ nextTier.pts - profile.summitPoints }} pts to <strong>{{ nextTier.name }}</strong></div>
+          <div class="ph-next-label">{{ nextTier.minPoints - profile.summitPoints }} pts to <strong>{{ nextTier.name }}</strong></div>
           <div class="ph-bar"><div class="ph-fill" :style="{ width: tierPct + '%' }" /></div>
         </div>
       </div>
@@ -20,7 +20,7 @@
         <div class="tier-card" v-for="t in tiers" :key="t.name" :class="{ 'tier-active': profile.level === t.name }">
           <div class="tier-icon">{{ t.icon }}</div>
           <div class="tier-name">{{ t.name }}</div>
-          <div class="tier-pts">{{ t.pts.toLocaleString() }}+ pts</div>
+          <div class="tier-pts">{{ t.minPoints.toLocaleString() }}+ pts</div>
           <div class="tier-perk">{{ t.perk }}</div>
         </div>
       </div>
@@ -31,15 +31,16 @@
       <div class="section-label">Points History</div>
       <div class="history-list">
         <div class="history-row" v-for="h in history" :key="h.id">
-          <div class="h-icon">{{ h.icon }}</div>
+          <div class="h-icon">{{ historyIcon(h.type) }}</div>
           <div class="h-body">
-            <div class="h-title">{{ h.title }}</div>
-            <div class="h-date">{{ h.date }}</div>
+            <div class="h-title">{{ h.reason }}</div>
+            <div class="h-date">{{ fmt(h.transactionDate) }}</div>
           </div>
-          <div class="h-pts" :class="h.pts > 0 ? 'h-earn' : 'h-spend'">
-            {{ h.pts > 0 ? '+' : '' }}{{ h.pts.toLocaleString() }} pts
+          <div class="h-pts" :class="h.points > 0 ? 'h-earn' : 'h-spend'">
+            {{ h.points > 0 ? '+' : '' }}{{ h.points.toLocaleString() }} pts
           </div>
         </div>
+        <div v-if="!history.length" class="empty-sm">No point activity yet.</div>
       </div>
     </div>
 
@@ -50,9 +51,9 @@
         <div class="redeem-card" v-for="r in redeemOptions" :key="r.name">
           <div class="re-icon">{{ r.icon }}</div>
           <div class="re-name">{{ r.name }}</div>
-          <div class="re-pts">{{ r.pts.toLocaleString() }} pts</div>
-          <button class="btn btn-sm" :class="profile.summitPoints >= r.pts ? 'btn-primary' : 'btn-ghost'" :disabled="profile.summitPoints < r.pts">
-            {{ profile.summitPoints >= r.pts ? 'Redeem' : 'Not enough points' }}
+          <div class="re-pts">{{ r.pointsCost.toLocaleString() }} pts</div>
+          <button class="btn btn-sm" :class="profile.summitPoints >= r.pointsCost ? 'btn-primary' : 'btn-ghost'" :disabled="profile.summitPoints < r.pointsCost">
+            {{ profile.summitPoints >= r.pointsCost ? 'Redeem' : 'Not enough points' }}
           </button>
         </div>
       </div>
@@ -63,35 +64,22 @@
 <script setup>
 import { useProfileStore } from '~/stores/profile'
 const profile = useProfileStore()
-const tiers = [
-  { name:'Trail Starter',  icon:'🥾', pts:0,    perk:'5% early access' },
-  { name:'Peak Climber',   icon:'⛰️',  pts:1000, perk:'10% discount + priority booking' },
-  { name:'Elite Explorer', icon:'🏔️', pts:2500, perk:'15% off + free upgrade' },
-  { name:'Summit Legend',  icon:'🦅', pts:5000, perk:'20% off + VIP concierge' },
-]
-const nextTier   = computed(() => tiers.find(t => t.pts > profile.summitPoints))
-const tierPct    = computed(() => {
-  const curr = tiers.slice().reverse().find(t => t.pts <= profile.summitPoints)
+
+const customerEmail = computed(() => profile.user?.email)
+const { data: tiers }         = await useLoyaltyTiers()
+const { data: redeemOptions } = await useRedeemOptions()
+const { data: history }       = await useSummitPointTransactions(customerEmail)
+
+const nextTier = computed(() => tiers.value.find(t => t.minPoints > profile.summitPoints))
+const tierPct  = computed(() => {
+  const curr = tiers.value.slice().reverse().find(t => t.minPoints <= profile.summitPoints)
   if (!curr || !nextTier.value) return 100
-  return Math.round((profile.summitPoints - curr.pts) / (nextTier.value.pts - curr.pts) * 100)
+  return Math.round((profile.summitPoints - curr.minPoints) / (nextTier.value.minPoints - curr.minPoints) * 100)
 })
-const history = [
-  { id:1, icon:'🗺️', title:'Rwenzori 72-Hour Survival — Completed',   date:'Apr 2025', pts:800 },
-  { id:2, icon:'⭐', title:'Left a verified review',                   date:'Apr 2025', pts:50  },
-  { id:3, icon:'📱', title:'Referral bonus — James O.',                date:'Mar 2025', pts:200 },
-  { id:4, icon:'🗺️', title:'Kidepo Valley Convoy — Completed',        date:'Jan 2025', pts:600 },
-  { id:5, icon:'🎁', title:'Redeemed: $50 trip credit',               date:'Dec 2024', pts:-500 },
-  { id:6, icon:'🗺️', title:'Nile Source Overland — Completed',        date:'Nov 2024', pts:400 },
-  { id:7, icon:'📝', title:'Profile completion bonus',                 date:'Jun 2023', pts:100 },
-]
-const redeemOptions = [
-  { icon:'💵', name:'$25 Trip Credit',    pts:500  },
-  { icon:'💵', name:'$50 Trip Credit',    pts:1000 },
-  { icon:'🎒', name:'Gear Kit Upgrade',   pts:1500 },
-  { icon:'🆙', name:'Package Upgrade',    pts:2000 },
-  { icon:'✈️', name:'Free Group Add-on',  pts:3000 },
-  { icon:'🏆', name:'Full VIP Upgrade',   pts:5000 },
-]
+
+const TYPE_ICONS = { earned: '🗺️', bonus: '📱', redeemed: '🎁', expired: '⌛' }
+const historyIcon = (type) => TYPE_ICONS[type] || '⭐'
+const fmt = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
 </script>
 
 <style scoped>

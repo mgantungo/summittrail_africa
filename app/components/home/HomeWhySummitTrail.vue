@@ -6,35 +6,14 @@
       <div class="why-card" v-for="w in cards" :key="w.title">
         <div class="why-icon">{{ w.icon }}</div>
         <div class="why-title">{{ w.title }}</div>
-        <div class="why-desc">{{ w.desc }}</div>
+        <div class="why-desc">{{ w.description }}</div>
       </div>
     </div>
   </section>
 </template>
 
 <script setup>
-const cards = [
-  {
-    icon: '🛡️',
-    title: 'Certified Safety',
-    desc: "Every guide holds Wilderness First Responder or higher. We've never had a serious incident in 340+ expeditions.",
-  },
-  {
-    icon: '🧭',
-    title: 'Expert Guides',
-    desc: '4 specialist guides with 12–15 years each in the field. They\'ve been where you\'re going – many times.',
-  },
-  {
-    icon: '🛤️',
-    title: 'Unique Routes',
-    desc: "We go where others don't. Our overland tracks, summit routes, and survival zones are exclusive to Summit Trail.",
-  },
-  {
-    icon: '📲',
-    title: 'Full Digital Support',
-    desc: 'Book, prepare, track, and relive your adventure – all through our integrated platform. Before, during, and after.',
-  },
-]
+const { data: cards } = await useSiteFeatures()
 </script>
 
 <style scoped>

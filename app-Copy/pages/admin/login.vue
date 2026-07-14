@@ -1,0 +1,307 @@
+<!--app/pages/admin/login.vue-->
+<template>
+  <div class="admin-login-page">
+    <div class="al-card">
+      <!-- Logo -->
+      <div class="al-logo">
+        <NuxtLink to="/">Summit<span>Trail</span></NuxtLink>
+      </div>
+
+      <div class="al-title">Admin Portal</div>
+      <div class="al-sub">Sign in to access the operations dashboard</div>
+
+      <form class="al-form" @submit.prevent="submit">
+        <div class="al-field">
+          <label class="input-label">Email Address</label>
+          <input
+            class="input"
+            v-model="form.email"
+            type="email"
+            placeholder="admin@summittrail.ug"
+            autocomplete="username"
+            required
+          />
+        </div>
+
+        <div class="al-field">
+          <label class="input-label">Password</label>
+          <div class="al-pw-wrap">
+            <input
+              class="input"
+              v-model="form.password"
+              :type="showPw ? 'text' : 'password'"
+              placeholder="••••••••••"
+              autocomplete="current-password"
+              required
+            />
+            <button type="button" class="al-pw-toggle" @click="showPw = !showPw">
+              {{ showPw ? '🙈' : '👁️' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Error -->
+        <Transition name="shake">
+          <div v-if="error" class="al-error">
+            <span>⚠️</span> {{ error }}
+          </div>
+        </Transition>
+
+        <button type="submit" class="btn btn-primary btn-full al-submit" :disabled="loading">
+          <span v-if="loading" class="al-spinner" />
+          {{ loading ? 'Authenticating…' : 'Sign In to Admin →' }}
+        </button>
+      </form>
+
+      <div class="al-hint">
+        <span>Not an admin?</span>
+        <NuxtLink to="/">Back to site</NuxtLink>
+      </div>
+
+      <!-- Demo credentials helper -->
+      <div class="al-demo">
+        <div class="al-demo-label">// Demo credentials</div>
+        <div class="al-demo-row">
+          <span>Email:</span>
+          <code @click="form.email = config.public.adminEmail" class="al-demo-val">
+            {{ config.public.adminEmail }}
+          </code>
+        </div>
+        <div class="al-demo-row">
+          <span>Password:</span>
+          <code @click="form.password = config.public.adminPassword" class="al-demo-val">
+            {{ config.public.adminPassword }}
+          </code>
+        </div>
+        <div class="al-demo-tip">Click a value to fill it in</div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { useProfileStore } from '~/stores/profile'
+
+definePageMeta({ layout: false })  // no nav/footer on login page
+
+useHead({ title: 'Admin Login – Summit Trail' })
+
+const profile = useProfileStore()
+const router  = useRouter()
+const config  = useRuntimeConfig()
+
+// If already logged in as admin, go straight to dashboard
+onMounted(() => {
+  if (profile.isAdmin) router.replace('/admin')
+})
+
+const form   = reactive({ email: '', password: '' })
+const loading = ref(false)
+const error   = ref('')
+const showPw  = ref(false)
+
+async function submit() {
+  error.value   = ''
+  loading.value = true
+
+  // Small delay so the button feedback is visible
+  await new Promise(r => setTimeout(r, 500))
+
+  const validEmail    = config.public.adminEmail
+  const validPassword = config.public.adminPassword
+
+  if (
+    form.email.trim().toLowerCase() === validEmail.toLowerCase() &&
+    form.password === validPassword
+  ) {
+    // Log in as admin
+    profile.login({
+      id:   'admin-001',
+      name: 'Admin',
+      email: form.email,
+      role: 'admin',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80',
+      level: 'Administrator',
+      summitPoints: 0,
+      totalTrips: 0,
+      upcomingTrips: 0,
+    })
+    profile.logAction({ type: 'auth', label: 'Admin login', route: '/admin' })
+    router.replace('/admin')
+  } else {
+    error.value = 'Invalid email or password. Check your credentials and try again.'
+    loading.value = false
+  }
+}
+</script>
+
+<style scoped>
+.admin-login-page {
+  min-height: 100vh;
+  background: var(--black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  position: relative;
+}
+
+/* subtle background texture */
+.admin-login-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 40%, rgba(232,98,42,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 70%, rgba(212,168,67,0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.al-card {
+  width: 100%;
+  max-width: 460px;
+  background: var(--charcoal);
+  border: 1px solid var(--border);
+  padding: 48px 44px;
+  position: relative;
+  z-index: 1;
+}
+
+.al-logo {
+  font-family: var(--font-display);
+  font-size: 28px;
+  letter-spacing: 3px;
+  margin-bottom: 32px;
+}
+.al-logo a { color: var(--text); }
+.al-logo span { color: var(--orange); }
+
+.al-title {
+  font-family: var(--font-display);
+  font-size: 38px;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.al-sub {
+  font-size: 15px;
+  color: var(--gray);
+  margin-bottom: 36px;
+  line-height: 1.5;
+}
+
+.al-form { display: flex; flex-direction: column; gap: 18px; margin-bottom: 20px; }
+.al-field { display: flex; flex-direction: column; gap: 8px; }
+
+.al-pw-wrap { position: relative; }
+.al-pw-wrap .input { padding-right: 48px; }
+.al-pw-toggle {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; font-size: 18px; cursor: pointer; padding: 4px;
+  line-height: 1; opacity: 0.6; transition: opacity .2s;
+}
+.al-pw-toggle:hover { opacity: 1; }
+
+.al-error {
+  background: rgba(192,57,43,0.12);
+  border: 1px solid var(--red);
+  color: var(--red);
+  padding: 13px 16px;
+  font-family: var(--font-condensed);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 0;
+}
+
+.al-submit {
+  padding: 16px;
+  font-size: 15px;
+  margin-top: 4px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.al-spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(10,10,8,0.3);
+  border-top-color: var(--black);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.al-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--gray);
+  margin-bottom: 28px;
+}
+.al-hint a {
+  color: var(--orange);
+  font-weight: 600;
+  transition: opacity .2s;
+}
+.al-hint a:hover { opacity: 0.8; }
+
+/* Demo credentials box */
+.al-demo {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--orange);
+  padding: 16px 18px;
+}
+.al-demo-label {
+  font-family: var(--font-condensed);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 10px;
+}
+.al-demo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-family: var(--font-condensed);
+  font-size: 13px;
+  color: var(--gray);
+}
+.al-demo-val {
+  font-family: monospace;
+  font-size: 13px;
+  color: var(--white);
+  background: var(--muted);
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.al-demo-val:hover { background: var(--orange); color: var(--black); }
+.al-demo-tip {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+/* Error shake animation */
+.shake-enter-active { animation: shake 0.4s ease; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%,60%  { transform: translateX(-6px); }
+  40%,80%  { transform: translateX(6px); }
+}
+
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+@media (max-width: 500px) {
+  .al-card { padding: 36px 24px; }
+}
+</style>

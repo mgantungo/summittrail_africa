@@ -47,8 +47,9 @@
 </template>
 
 <script setup>
-import { adventures } from '~~/data/demo.js'
 import { useAnalyticsStore } from '~/stores/analytics'
+
+const { data: adventures } = await useAdventures()
 
 const analytics     = useAnalyticsStore()
 const activeCategory = ref('')
@@ -63,8 +64,8 @@ const categories = [
 
 const filtered = computed(() =>
   activeCategory.value
-    ? adventures.filter(a => a.category === activeCategory.value)
-    : adventures
+    ? adventures.value.filter(a => a.category === activeCategory.value)
+    : adventures.value
 )
 
 function trackView(adv) {

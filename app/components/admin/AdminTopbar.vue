@@ -26,12 +26,19 @@ const pageTitle = computed(() => {
   const map = {
     '/admin': 'Overview',
     '/admin/bookings': 'Bookings',
+    '/admin/trips': 'Trips',
+    '/admin/customers': 'Customers',
+    '/admin/vehicles': 'Vehicles',
+    '/admin/guides': 'Guides',
     '/admin/analytics': 'Analytics',
     '/admin/newsletter': 'Newsletter',
+    '/admin/notifications': 'Push Alerts',
+    '/admin/content': 'Content',
   }
   return map[route.path] || route.path.split('/').pop()
 })
-const liveCount = 7
+const { data: liveExpeditions } = await useLiveExpeditions()
+const liveCount = computed(() => liveExpeditions.value.length)
 </script>
 
 <style scoped>

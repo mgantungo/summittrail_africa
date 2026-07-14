@@ -45,7 +45,7 @@
 </template>
 
 <script setup>
-import { adventures } from '~~/data/demo.js'
+const { data: adventures } = await useAdventures()
 const fmt = (d) => new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})
 </script>
 

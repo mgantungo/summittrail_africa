@@ -1,51 +1,48 @@
 // server/api/newsletter/subscribe.post.js
-// Stores newsletter subscribers. 
-// Replace the in-memory store with your CRM/Mailchimp/Brevo API in production.
-
-const subscribers = globalThis.__nlSubscribers ?? (globalThis.__nlSubscribers = [])
+//
+// Writes newsletter subscribers into the CMS `newsletter-subscriber`
+// collection (visible in the Strapi admin, and counted in
+// AdminAnalytics) instead of an in-memory array that reset on every
+// server restart.
 
 export default defineEventHandler(async (event) => {
-  const config = useRuntimeConfig()
+  const config = useRuntimeConfig(event)
   const body = await readBody(event)
-
-  const { email, name = '', interests = [], source = 'modal' } = body
+  const { email, name = '', interests = [], source = 'modal' } = body || {}
 
   if (!email || !email.includes('@')) {
-    throw createError({ statusCode: 400, message: 'Valid email required' })
+    throw createError({ statusCode: 400, statusMessage: 'Valid email required' })
   }
 
+  const base = config.public.strapiUrl
+
   // Prevent duplicates
-  const existing = subscribers.find(s => s.email.toLowerCase() === email.toLowerCase())
-  if (existing) {
+  const existing = await $fetch(`${base}/api/newsletter-subscribers`, {
+    query: { 'filters[email][$eq]': email },
+  })
+  if (existing?.data?.length) {
     return { success: true, message: 'Already subscribed', duplicate: true }
   }
 
-  const subscriber = {
-    id: 'nl_' + Date.now(),
-    email: email.toLowerCase(),
-    name,
-    interests,
-    source,
-    country: getHeader(event, 'cf-ipcountry') || null,
-    subscribedAt: new Date().toISOString(),
-    active: true,
-  }
+  await $fetch(`${base}/api/newsletter-subscribers`, {
+    method: 'POST',
+    body: {
+      data: {
+        email: email.toLowerCase(),
+        name,
+        source,
+        status: 'subscribed',
+        subscribedAt: new Date().toISOString(),
+      },
+    },
+  })
 
-  subscribers.push(subscriber)
-
-  // TODO: integrate with Brevo/Mailchimp API using config.smtpUser / config.smtpPass
-  // Example for Brevo:
+  // TODO: also push to Brevo using config.smtpUser / config.smtpPass, e.g.:
   // await $fetch('https://api.brevo.com/v3/contacts', {
   //   method: 'POST',
   //   headers: { 'api-key': process.env.BREVO_API_KEY, 'Content-Type': 'application/json' },
   //   body: JSON.stringify({ email, firstName: name, listIds: [1], updateEnabled: true })
   // })
 
-  console.log(`[Newsletter] New subscriber: ${email} (${subscribers.length} total)`)
-
-  return {
-    success: true,
-    message: 'Subscribed successfully',
-    count: subscribers.length,
-  }
+  return { success: true, message: 'Subscribed successfully' }
 })

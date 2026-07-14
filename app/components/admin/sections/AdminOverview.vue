@@ -70,11 +70,11 @@
           <thead><tr><th>ID</th><th>Customer</th><th>Trip</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
           <tbody>
             <tr v-for="b in demoBookings" :key="b.id">
-              <td style="color:var(--muted)">{{ b.id }}</td>
-              <td style="color:var(--text);font-weight:700">{{ b.customer.name }}</td>
+              <td style="color:var(--muted)">{{ b.reference }}</td>
+              <td style="color:var(--text);font-weight:700">{{ b.customer?.name }}</td>
               <td>{{ advName(b.adventure) }}</td>
-              <td>{{ fmt(b.departure) }}</td>
-              <td style="color:var(--orange);font-weight:700">${{ b.total.toLocaleString() }}</td>
+              <td>{{ fmt(b.departureDate) }}</td>
+              <td style="color:var(--orange);font-weight:700">${{ Number(b.total).toLocaleString() }}</td>
               <td><span class="badge" :class="`badge-${statusCls(b.status)}`">{{ b.status }}</span></td>
             </tr>
           </tbody>
@@ -85,18 +85,31 @@
 </template>
 
 <script setup>
-import { analyticsData, demoBookings, adventures } from '~~/data/demo.js'
+const { data: analyticsData } = await useAnalyticsSnapshot()
+const { data: allBookings }   = await useBookings()
+const demoBookings = computed(() => allBookings.value.slice(0, 10))
+
 defineEmits(['send-push','select'])
 const today = new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
-const activeTripCount = 7
 const greeting = computed(() => { const h = new Date().getHours(); return h<12?'morning':h<17?'afternoon':'evening' })
-const metrics = [
-  { val:'142', label:'Bookings This Month', color:'orange', trend:'↑ +18%', trendClass:'trend-up' },
-  { val:'$84k', label:'Revenue This Month', color:'gold', trend:'↑ +24%', trendClass:'trend-up' },
-  { val: activeTripCount, label:'Active Trips Now', color:'green', trend:'3 mountain · 4 overland', trendClass:'' },
-  { val:'12', label:'Incomplete Bookings', color:'red', trend:'⚠ Needs follow-up', trendClass:'trend-down' },
-]
-const advName = (id) => { const a = adventures.find(x=>x.id===id); return a ? a.title.split(' ').slice(0,3).join(' ')+'…' : id }
+
+const now = new Date()
+const bookingsThisMonth = computed(() => allBookings.value.filter(b => {
+  if (!b.bookedAt) return false
+  const d = new Date(b.bookedAt)
+  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+}))
+const revenueThisMonth = computed(() => bookingsThisMonth.value.reduce((s, b) => s + Number(b.paid || 0), 0))
+const activeTripCount = computed(() => allBookings.value.filter(b => b.status === 'confirmed').length)
+const incompleteCount = computed(() => allBookings.value.filter(b => b.status === 'pending-payment').length)
+
+const metrics = computed(() => [
+  { val: bookingsThisMonth.value.length, label:'Bookings This Month', color:'orange', trend:'', trendClass:'' },
+  { val: '$'+revenueThisMonth.value.toLocaleString(), label:'Revenue This Month', color:'gold', trend:'', trendClass:'' },
+  { val: activeTripCount.value, label:'Confirmed Trips', color:'green', trend:'', trendClass:'' },
+  { val: incompleteCount.value, label:'Incomplete Bookings', color:'red', trend: incompleteCount.value ? '⚠ Needs follow-up' : '', trendClass:'trend-down' },
+])
+const advName = (adv) => shortTitle(adv?.title)
 const fmt = (d) => new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short'})
 const statusCls = (s) => s==='confirmed'?'confirmed':s==='pending-payment'?'pending':'cancelled'
 </script>

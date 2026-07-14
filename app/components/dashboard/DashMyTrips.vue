@@ -11,7 +11,7 @@
         <span class="badge badge-confirmed">✓ Confirmed</span>
         <h3 class="upcoming-title">{{ upcomingAdventure?.title }}</h3>
         <div class="upcoming-meta">
-          <span>📅 {{ fmt(upcomingBooking.departure) }}</span>
+          <span>📅 {{ fmt(upcomingBooking.departureDate) }}</span>
           <span>👥 {{ upcomingBooking.participants }} participants</span>
           <span>🧭 Guide: Samuel K.</span>
         </div>
@@ -67,13 +67,13 @@
       <div class="section-label">All Bookings</div>
       <div class="bookings-list">
         <div class="booking-row" v-for="b in userBookings" :key="b.id">
-          <img :src="getAdv(b.adventure)?.image" :alt="b.adventure" class="bk-img" loading="lazy" />
+          <img :src="b.adventure?.image" :alt="b.adventure?.title" class="bk-img" loading="lazy" />
           <div class="bk-body">
-            <div class="bk-title">{{ getAdv(b.adventure)?.title || b.adventure }}</div>
-            <div class="bk-meta">{{ fmt(b.departure) }} · {{ b.participants }} people · {{ b.package }} package</div>
+            <div class="bk-title">{{ b.adventure?.title }}</div>
+            <div class="bk-meta">{{ fmt(b.departureDate) }} · {{ b.participants }} people · {{ b.package }} package</div>
           </div>
           <div class="bk-right">
-            <div class="bk-total">${{ b.total.toLocaleString() }}</div>
+            <div class="bk-total">${{ Number(b.total).toLocaleString() }}</div>
             <span class="badge" :class="`badge-${statusCls(b.status)}`">{{ b.status }}</span>
           </div>
         </div>
@@ -84,20 +84,22 @@
 </template>
 
 <script setup>
-import { adventures, demoBookings } from '~~/data/demo.js'
 import { useProfileStore } from '~/stores/profile'
 
 defineEmits(['go'])
 const profile = useProfileStore()
 
-const upcomingBooking  = demoBookings.find(b => b.status === 'confirmed') || demoBookings[0]
-const upcomingAdventure = adventures.find(a => a.id === upcomingBooking?.adventure)
-const userBookings = demoBookings
+const customerEmail = computed(() => profile.user?.email)
+const { data: demoBookings } = await useCustomerBookings(customerEmail)
+
+const upcomingBooking   = computed(() => demoBookings.value.find(b => b.status === 'confirmed') || demoBookings.value[0])
+const upcomingAdventure = computed(() => upcomingBooking.value?.adventure)
+const userBookings      = demoBookings
 
 const cd = reactive({ days: '00', hours: '00', mins: '00' })
 function tick() {
-  if (!upcomingBooking) return
-  const diff = new Date(upcomingBooking.departure) - new Date()
+  if (!upcomingBooking.value) return
+  const diff = new Date(upcomingBooking.value.departureDate) - new Date()
   if (diff <= 0) return
   cd.days  = String(Math.floor(diff / 86400000)).padStart(2,'0')
   cd.hours = String(Math.floor((diff % 86400000) / 3600000)).padStart(2,'0')
@@ -122,7 +124,6 @@ const reminders = [
   { id:3, type:'green',  icon:'👥', title:'Group Update',   text:'6 of 8 spots confirmed. Your team is forming.' },
 ]
 
-const getAdv = (id) => adventures.find(a => a.id === id)
 const fmt = (d) => d ? new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}) : ''
 const statusCls = (s) => s==='confirmed'?'confirmed':s==='pending-payment'?'pending':'cancelled'
 </script>

@@ -32,12 +32,12 @@
 </template>
 
 <script setup>
-import { adventures } from '~~/data/demo.js'
+const { data: adventures } = await useAdventures()
 
 const departures = computed(() => {
   const deps = []
-  adventures.forEach(adv => {
-    adv.departures.forEach(dep => {
+  ;(adventures.value || []).forEach(adv => {
+    ;(adv.departures || []).forEach(dep => {
       deps.push({ ...adv, date: dep.date, spots: dep.spotsLeft, status: dep.status })
     })
   })

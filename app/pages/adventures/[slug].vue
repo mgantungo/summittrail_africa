@@ -88,9 +88,9 @@
                 <div class="review-title">{{ r.title }}</div>
                 <p class="review-text">"{{ r.content }}"</p>
                 <div class="reviewer">
-                  <img :src="r.author.avatar" :alt="r.author.name" class="reviewer-img" />
+                  <img :src="r.author?.avatar" :alt="r.author?.name || 'Reviewer'" class="reviewer-img" />
                   <div>
-                    <div class="reviewer-name">{{ r.author.name }} · {{ r.author.location }}</div>
+                    <div class="reviewer-name">{{ r.author?.name || 'Verified Traveler' }} · {{ r.author?.location }}</div>
                     <div class="reviewer-date">{{ formatDate(r.date) }}</div>
                   </div>
                 </div>
@@ -142,10 +142,10 @@
             <label class="input-label" style="margin-top:16px;">Add-ons</label>
             <div class="addons">
               <div
-                v-for="addon in adv.addons" :key="addon.id"
-                class="addon" @click="toggleAddon(addon.id)"
+                v-for="addon in adv.addons" :key="addon.key"
+                class="addon" @click="toggleAddon(addon.key)"
               >
-                <div class="addon-check" :class="{ checked: booking.addons.includes(addon.id) }" />
+                <div class="addon-check" :class="{ checked: booking.addons.includes(addon.key) }" />
                 <span class="addon-label">{{ addon.label }}</span>
                 <span class="addon-price">+${{ addon.price }}</span>
               </div>
@@ -198,7 +198,6 @@
 </template>
 
 <script setup>
-import { adventures, guides, reviews as allReviews } from '~~/data/demo.js'
 import { useProfileStore } from '~/stores/profile'
 import { useAnalyticsStore } from '~/stores/analytics'
 
@@ -206,7 +205,8 @@ const route = useRoute()
 const profile = useProfileStore()
 const analytics = useAnalyticsStore()
 
-const adv = computed(() => adventures.find(a => a.slug === route.params.slug))
+const { data: adv } = await useAdventure(computed(() => route.params.slug))
+const { data: adventureReviews } = await useReviews(computed(() => route.params.slug))
 
 useHead(() => ({ title: adv.value ? `${adv.value.title} – Summit Trail` : 'Adventure' }))
 
@@ -225,19 +225,16 @@ const selectedTotal = computed(() => {
   if (!adv.value) return 0
   const pkg = packages.value.find(p => p.id === booking.package)
   const base = pkg?.price || adv.value.basePrice
-  const addonsTotal = booking.addons.reduce((sum, id) => {
-    const a = adv.value.addons.find(a => a.id === id)
+  const addonsTotal = booking.addons.reduce((sum, key) => {
+    const a = (adv.value.addons || []).find(a => a.key === key)
     return sum + (a?.price || 0)
   }, 0)
   return base + addonsTotal
 })
 
-const adventureReviews = computed(() => allReviews.filter(r => r.adventureId === adv.value?.id))
-
-const advGuides = computed(() => {
-  if (!adv.value) return []
-  return guides.filter(g => adv.value.guides.includes(g.id))
-})
+// Guides come pre-populated on the adventure relation (populate=*),
+// so no separate lookup against a full guides list is needed.
+const advGuides = computed(() => adv.value?.guides || [])
 
 function toggleAddon(id) {
   const idx = booking.addons.indexOf(id)

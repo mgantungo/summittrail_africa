@@ -10,10 +10,10 @@
         <div class="review-title">{{ r.title }}</div>
         <p class="review-text">"{{ r.content }}"</p>
         <div class="reviewer">
-          <img :src="r.author.avatar" :alt="r.author.name" class="reviewer-img" />
+          <img :src="r.author?.avatar" :alt="r.author?.name || 'Reviewer'" class="reviewer-img" />
           <div>
-            <div class="reviewer-name">{{ r.author.name }}</div>
-            <div class="reviewer-loc">{{ r.author.location }}</div>
+            <div class="reviewer-name">{{ r.author?.name || 'Verified Traveler' }}</div>
+            <div class="reviewer-loc">{{ r.author?.location }}</div>
           </div>
         </div>
       </div>
@@ -22,9 +22,7 @@
 </template>
 
 <script setup>
-import { reviews as demoReviews } from '~~/data/demo.js'
-
-const reviews = demoReviews
+const { data: reviews } = await useReviews()
 </script>
 
 <style scoped>

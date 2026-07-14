@@ -26,17 +26,20 @@
           <tr v-for="c in filtered" :key="c.id">
             <td>
               <div class="cust-name-cell">
-                <div class="cust-avatar-placeholder">{{ c.customer.name.charAt(0) }}</div>
-                <span style="font-weight:700;color:var(--text);">{{ c.customer.name }}</span>
+                <div class="cust-avatar-placeholder">{{ c.name.charAt(0) }}</div>
+                <span style="font-weight:700;color:var(--text);">{{ c.name }}</span>
               </div>
             </td>
-            <td>{{ c.customer.email }}</td>
-            <td>{{ c.customer.phone }}</td>
-            <td>{{ c.customer.country }}</td>
-            <td style="text-align:center;">1</td>
-            <td style="color:var(--orange);font-weight:700;">${{ c.total.toLocaleString() }}</td>
+            <td>{{ c.email }}</td>
+            <td>{{ c.phone }}</td>
+            <td>{{ c.country }}</td>
+            <td style="text-align:center;">{{ bookingCount(c) }}</td>
+            <td style="color:var(--orange);font-weight:700;">${{ totalSpent(c).toLocaleString() }}</td>
             <td><span class="badge" :class="`badge-${statusCls(c.status)}`">{{ c.status }}</span></td>
             <td><button class="btn btn-ghost btn-sm">View →</button></td>
+          </tr>
+          <tr v-if="!filtered.length">
+            <td colspan="8" style="text-align:center;padding:40px;color:var(--gray);">No customers match your filters</td>
           </tr>
         </tbody>
       </table>
@@ -45,22 +48,32 @@
 </template>
 
 <script setup>
-import { demoBookings } from '~~/data/demo.js'
+const { data: customers } = await useCustomers()
+const { data: bookings }  = await useBookings()
+
 const search = ref(''), countryFilter = ref('')
-const countries = [...new Set(demoBookings.map(b=>b.customer.country))]
-const filtered = computed(() => demoBookings.filter(b => {
+
+const countries = computed(() => [...new Set(customers.value.map(c => c.country).filter(Boolean))])
+
+const filtered = computed(() => customers.value.filter(c => {
   const q = search.value.toLowerCase()
-  const matchQ = !q || b.customer.name.toLowerCase().includes(q) || b.customer.email.toLowerCase().includes(q)
-  const matchC = !countryFilter.value || b.customer.country === countryFilter.value
+  const matchQ = !q || c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q)
+  const matchC = !countryFilter.value || c.country === countryFilter.value
   return matchQ && matchC
 }))
-const summary = [
-  { val: demoBookings.length,  label:'Total Customers',  color:'var(--white)' },
-  { val: demoBookings.filter(b=>b.status==='confirmed').length, label:'Active', color:'var(--green-light)' },
-  { val: demoBookings.filter(b=>b.status==='cancelled').length, label:'Churned', color:'var(--red)' },
-  { val: '$'+demoBookings.reduce((s,b)=>s+b.paid,0).toLocaleString(), label:'Lifetime Revenue', color:'var(--orange)' },
-]
-const statusCls = (s) => s==='confirmed'?'confirmed':s==='pending-payment'?'pending':'cancelled'
+
+const customerBookings = (c) => bookings.value.filter(b => b.customer?.email === c.email)
+const bookingCount = (c) => customerBookings(c).length
+const totalSpent   = (c) => customerBookings(c).reduce((s, b) => s + Number(b.paid || 0), 0)
+
+const summary = computed(() => [
+  { val: customers.value.length,                                              label:'Total Customers',  color:'var(--white)' },
+  { val: customers.value.filter(c=>c.status==='active').length,                label:'Active',           color:'var(--green-light)' },
+  { val: customers.value.filter(c=>c.status==='churned').length,               label:'Churned',          color:'var(--red)' },
+  { val: '$'+bookings.value.reduce((s,b)=>s+Number(b.paid||0),0).toLocaleString(), label:'Lifetime Revenue', color:'var(--orange)' },
+])
+
+const statusCls = (s) => s==='active' ? 'confirmed' : 'cancelled'
 </script>
 
 <style scoped>

@@ -115,7 +115,7 @@
 </template>
 
 <script setup>
-import { adventures } from '~~/data/demo.js'
+const { data: adventures } = await useAdventures()
 
 useHead({ title: 'Adventure Calendar – Summit Trail' })
 
@@ -143,7 +143,7 @@ const monthTitle = computed(() =>
 // Build all departures with adventure details
 const allDepartures = computed(() => {
   const deps = []
-  adventures.forEach(adv => {
+  adventures.value.forEach(adv => {
     if (activeCategory.value && adv.category !== activeCategory.value) return
     adv.departures.forEach(dep => {
       deps.push({ ...adv, date: dep.date, spotsLeft: dep.spotsLeft })

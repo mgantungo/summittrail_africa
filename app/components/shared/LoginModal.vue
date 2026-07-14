@@ -49,7 +49,6 @@
 
 <script setup>
 import { useProfileStore } from '~/stores/profile'
-import { demoUser } from '~~/data/demo.js'
 
 const emit = defineEmits(['close'])
 const profile = useProfileStore()
@@ -64,27 +63,40 @@ async function submit() {
   loading.value = true
   error.value = null
   try {
-    // Demo: accept any credentials
-    await new Promise(r => setTimeout(r, 600))
-    const user = {
-      ...demoUser,
-      name: form.name || demoUser.name,
-      email: form.email || demoUser.email,
-    }
-    profile.login(user)
+    const endpoint = isRegister.value ? '/api/auth/register' : '/api/auth/login'
+    const body = isRegister.value
+      ? { name: form.name, email: form.email, password: form.password }
+      : { email: form.email, password: form.password }
+
+    const { customer } = await $fetch(endpoint, { method: 'POST', body })
+    profile.login(customer)
     emit('close')
     router.push('/dashboard')
-  } catch {
-    error.value = 'Invalid credentials. Try the demo login.'
+  } catch (e) {
+    error.value = e?.data?.statusMessage || e?.statusMessage || 'Something went wrong. Please try again.'
   } finally {
     loading.value = false
   }
 }
 
-function demoLogin() {
-  profile.login(demoUser)
-  emit('close')
-  router.push('/dashboard')
+// "Demo Login" signs into the seeded alex@email.com account so people
+// evaluating the app don't need to register first.
+async function demoLogin() {
+  loading.value = true
+  error.value = null
+  try {
+    const { customer } = await $fetch('/api/auth/login', {
+      method: 'POST',
+      body: { email: 'alex@email.com', password: 'SummitDemo123!' },
+    })
+    profile.login(customer)
+    emit('close')
+    router.push('/dashboard')
+  } catch (e) {
+    error.value = 'Demo account unavailable — run the CMS seed script with the updated seed-data.js.'
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

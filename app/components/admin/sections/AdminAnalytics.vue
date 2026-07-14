@@ -17,8 +17,8 @@
       <div class="an-card">
         <div class="an-title">Monthly Revenue (UGX approx.)</div>
         <div class="rev-chart">
-          <div class="rev-bar-wrap" v-for="m in analyticsData.monthlyBookings" :key="m.month">
-            <div class="rev-bar" :style="{ height: (m.revenue / 90000 * 100) + '%' }" />
+          <div class="rev-bar-wrap" v-for="m in monthlyRevenue" :key="m.month">
+            <div class="rev-bar" :style="{ height: (m.revenue / maxRevenue * 100) + '%' }" />
             <div class="rev-label">{{ m.month }}</div>
           </div>
         </div>
@@ -40,11 +40,11 @@
       <div class="an-card">
         <div class="an-title">Top Markets</div>
         <div class="market-list">
-          <div class="market-row" v-for="(c, i) in analyticsData.topCountries.slice(0,6)" :key="c.code">
+          <div class="market-row" v-for="(c, i) in topMarkets" :key="c.country">
             <div class="market-rank">#{{ i+1 }}</div>
             <div class="market-country">{{ c.country }}</div>
-            <div class="market-bar"><div class="market-fill" :style="{ width: (c.visitors/3420*100)+'%' }" /></div>
-            <div class="market-num">{{ c.visitors.toLocaleString() }}</div>
+            <div class="market-bar"><div class="market-fill" :style="{ width: (c.bookings/maxMarketBookings*100)+'%' }" /></div>
+            <div class="market-num">{{ c.bookings.toLocaleString() }}</div>
           </div>
         </div>
       </div>
@@ -53,15 +53,15 @@
       <div class="an-card">
         <div class="an-title">Conversion Funnel</div>
         <div class="funnel-list">
-          <div class="funnel-item" v-for="(f, i) in analyticsData.funnel" :key="f.stage">
+          <div class="funnel-item" v-for="(f, i) in liveFunnel" :key="f.stage">
             <div class="fi-label">{{ f.stage }}</div>
             <div class="fi-track">
-              <div class="fi-fill" :style="{ width: (f.count/320*100)+'%', opacity: 1 - i*0.12,
-                background: i===analyticsData.funnel.length-1?'var(--green-light)':'var(--orange)' }" />
+              <div class="fi-fill" :style="{ width: (f.count / (liveFunnel[0]?.count || 1) * 100)+'%', opacity: 1 - i*0.12,
+                background: i===liveFunnel.length-1?'var(--green-light)':'var(--orange)' }" />
             </div>
             <div class="fi-num">{{ f.count }}</div>
             <div class="fi-pct" v-if="i>0" style="color:var(--gray);font-size:12px;">
-              ({{ Math.round(f.count/analyticsData.funnel[i-1].count*100) }}%)
+              ({{ liveFunnel[i-1].count ? Math.round(f.count/liveFunnel[i-1].count*100) : 0 }}%)
             </div>
           </div>
         </div>
@@ -82,25 +82,79 @@
 </template>
 
 <script setup>
-import { analyticsData } from '~~/data/demo.js'
-const kpis = [
-  { val:'34.8K', label:'Page Views / Month', color:'var(--orange)', trend:'↑ +12%', trendUp:true },
-  { val:'8.4K',  label:'Weekly Sessions',    color:'var(--white)',  trend:'↑ +9%',  trendUp:true },
-  { val:'4.2%',  label:'Conversion Rate',    color:'var(--gold)',   trend:'↑ +0.4%',trendUp:true },
-  { val:'3m 24s',label:'Avg. Session Time',  color:'var(--green-light)', trend:'↑ +18s',trendUp:true },
-]
-const deviceSplit = [
-  { icon:'📱', label:'Mobile',  pct: analyticsData.deviceSplit.mobile,  color:'var(--orange)' },
-  { icon:'🖥️', label:'Desktop', pct: analyticsData.deviceSplit.desktop, color:'var(--gold)' },
-  { icon:'📲', label:'Tablet',  pct: analyticsData.deviceSplit.tablet,  color:'var(--green-light)' },
-]
-const trafficSummary = [
-  { val:'1,240', label:'Today' },
-  { val:'8,420', label:'This Week' },
-  { val:'34,820',label:'This Month' },
-  { val:'127',   label:'Newsletter Subs' },
+// deviceSplit / pageViews / KPIs below are genuine web-traffic analytics
+// (device type, session counts) that this app has no tracking pipeline
+// for — they stay sourced from the seeded analytics-snapshot until a
+// real tracking integration exists. Everything derivable from actual
+// booking records (revenue, top markets, funnel) is computed live below.
+const { data: analyticsData }    = await useAnalyticsSnapshot()
+const { data: bookings }         = await useBookings()
+const { data: contactMessages }  = await useContactMessages()
+const { data: newsletterSubs }   = await useNewsletterSubscribers()
+
+const kpis = computed(() => [
+  { val: analyticsData.value?.kpis?.pageViewsPerMonth || '—', label:'Page Views / Month', color:'var(--orange)', trend:'↑ +12%', trendUp:true },
+  { val: analyticsData.value?.kpis?.weeklySessions   || '—', label:'Weekly Sessions',    color:'var(--white)',  trend:'↑ +9%',  trendUp:true },
+  { val: analyticsData.value?.kpis?.conversionRate   || '—', label:'Conversion Rate',    color:'var(--gold)',   trend:'↑ +0.4%',trendUp:true },
+  { val: analyticsData.value?.kpis?.avgSessionTime   || '—', label:'Avg. Session Time',  color:'var(--green-light)', trend:'↑ +18s',trendUp:true },
+])
+const deviceSplit = computed(() => [
+  { icon:'📱', label:'Mobile',  pct: analyticsData.value?.deviceSplit?.mobile  || 0, color:'var(--orange)' },
+  { icon:'🖥️', label:'Desktop', pct: analyticsData.value?.deviceSplit?.desktop || 0, color:'var(--gold)' },
+  { icon:'📲', label:'Tablet',  pct: analyticsData.value?.deviceSplit?.tablet  || 0, color:'var(--green-light)' },
+])
+const trafficSummary = computed(() => [
+  { val: (analyticsData.value?.pageViews?.today || 0).toLocaleString(),  label:'Today' },
+  { val: (analyticsData.value?.pageViews?.week  || 0).toLocaleString(),  label:'This Week' },
+  { val: (analyticsData.value?.pageViews?.month || 0).toLocaleString(),  label:'This Month' },
+  { val: String(newsletterSubs.value.length), label:'Newsletter Subs' },
   { val:'38',    label:'Push Subscribers' },
-]
+])
+
+// ── Live: monthly revenue from real bookings ─────────────────────────────
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+const monthlyRevenue = computed(() => {
+  const byMonth = {}
+  for (const b of bookings.value) {
+    if (!b.bookedAt) continue
+    const d = new Date(b.bookedAt)
+    const key = `${d.getFullYear()}-${d.getMonth()}`
+    if (!byMonth[key]) byMonth[key] = { month: MONTHS[d.getMonth()], revenue: 0, sortKey: key }
+    byMonth[key].revenue += Number(b.paid || 0)
+  }
+  return Object.values(byMonth).sort((a, b) => a.sortKey.localeCompare(b.sortKey)).slice(-6)
+})
+const maxRevenue = computed(() => Math.max(1, ...monthlyRevenue.value.map(m => m.revenue)))
+
+// ── Live: top markets by real booking count per customer country ────────
+const topMarkets = computed(() => {
+  const byCountry = {}
+  for (const b of bookings.value) {
+    const country = b.customer?.country || 'Unknown'
+    byCountry[country] = (byCountry[country] || 0) + 1
+  }
+  return Object.entries(byCountry)
+    .map(([country, count]) => ({ country, bookings: count }))
+    .sort((a, b) => b.bookings - a.bookings)
+    .slice(0, 6)
+})
+const maxMarketBookings = computed(() => Math.max(1, ...topMarkets.value.map(c => c.bookings)))
+
+// ── Live: conversion funnel from real records ────────────────────────────
+const liveFunnel = computed(() => {
+  const total = bookings.value.length
+  const confirmed = bookings.value.filter(b => b.status === 'confirmed' || b.status === 'completed').length
+  const paid = bookings.value.filter(b => Number(b.paid || 0) > 0).length
+  const completed = bookings.value.filter(b => b.status === 'completed').length
+  return [
+    { stage: 'Inquiries',  count: contactMessages.value.length },
+    { stage: 'Bookings',   count: total },
+    { stage: 'Confirmed',  count: confirmed },
+    { stage: 'Paid',       count: paid },
+    { stage: 'Completed',  count: completed },
+  ]
+})
+
 </script>
 
 <style scoped>

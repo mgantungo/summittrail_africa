@@ -19,13 +19,13 @@
         </thead>
         <tbody>
           <tr v-for="b in demoBookings" :key="b.id">
-            <td class="td-id">{{ b.id }}</td>
+            <td class="td-id">{{ b.reference }}</td>
             <td>{{ advName(b.adventure) }}</td>
-            <td>{{ fmt(b.departure) }}</td>
-            <td class="td-amount">${{ b.total.toLocaleString() }}</td>
-            <td style="color:var(--green-light);font-weight:700;">${{ b.paid.toLocaleString() }}</td>
-            <td :style="`color:${b.total-b.paid>0?'var(--red)':'var(--gray)'};font-weight:700;`">
-              ${{ (b.total - b.paid).toLocaleString() }}
+            <td>{{ fmt(b.departureDate) }}</td>
+            <td class="td-amount">${{ Number(b.total).toLocaleString() }}</td>
+            <td style="color:var(--green-light);font-weight:700;">${{ Number(b.paid).toLocaleString() }}</td>
+            <td :style="`color:${Number(b.total)-Number(b.paid)>0?'var(--red)':'var(--gray)'};font-weight:700;`">
+              ${{ (Number(b.total) - Number(b.paid)).toLocaleString() }}
             </td>
             <td>{{ b.paymentMethod || '—' }}</td>
             <td><span class="badge" :class="`badge-${statusCls(b.status)}`">{{ b.status }}</span></td>
@@ -63,16 +63,21 @@
 </template>
 
 <script setup>
-import { demoBookings, adventures } from '~~/data/demo.js'
-const totalPaid    = demoBookings.reduce((s,b)=>s+b.paid,0)
-const totalOwed    = demoBookings.reduce((s,b)=>s+b.total,0)
-const outstanding  = totalOwed - totalPaid
-const summary = [
-  { val: '$'+totalOwed.toLocaleString(),       label:'Total Booked',      color:'var(--white)' },
-  { val: '$'+totalPaid.toLocaleString(),        label:'Total Paid',        color:'var(--green-light)' },
-  { val: '$'+outstanding.toLocaleString(),      label:'Outstanding',       color: outstanding > 0 ? 'var(--red)' : 'var(--gray)' },
-  { val: demoBookings.length,                   label:'Transactions',      color:'var(--orange)' },
-]
+import { useProfileStore } from '~/stores/profile'
+
+const profile = useProfileStore()
+const customerEmail = computed(() => profile.user?.email)
+const { data: demoBookings } = await useCustomerBookings(customerEmail)
+
+const totalPaid   = computed(() => demoBookings.value.reduce((s,b)=>s+Number(b.paid||0),0))
+const totalOwed   = computed(() => demoBookings.value.reduce((s,b)=>s+Number(b.total||0),0))
+const outstanding = computed(() => totalOwed.value - totalPaid.value)
+const summary = computed(() => [
+  { val: '$'+totalOwed.value.toLocaleString(),       label:'Total Booked',      color:'var(--white)' },
+  { val: '$'+totalPaid.value.toLocaleString(),        label:'Total Paid',        color:'var(--green-light)' },
+  { val: '$'+outstanding.value.toLocaleString(),      label:'Outstanding',       color: outstanding.value > 0 ? 'var(--red)' : 'var(--gray)' },
+  { val: demoBookings.value.length,                   label:'Transactions',      color:'var(--orange)' },
+])
 const methods = [
   { icon:'💳', name:'Visa / Mastercard', note:'Credit & debit cards' },
   { icon:'📱', name:'MTN Mobile Money',  note:'Uganda & Rwanda' },
@@ -80,7 +85,7 @@ const methods = [
   { icon:'🏦', name:'Bank Transfer',     note:'USD / UGX accounts' },
   { icon:'⚡', name:'PayPal',           note:'International' },
 ]
-const advName  = (id) => adventures.find(a=>a.id===id)?.title?.split(' ').slice(0,3).join(' ')+'…' || id
+const advName  = (adv) => shortTitle(adv?.title)
 const fmt      = (d) => new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})
 const statusCls = (s) => s==='confirmed'?'confirmed':s==='pending-payment'?'pending':'cancelled'
 </script>

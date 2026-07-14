@@ -16,15 +16,15 @@
     <nav class="admin-nav">
       <ul>
         <li v-for="item in navItems" :key="item.key">
-          <button
+          <NuxtLink
+            :to="item.to"
             class="admin-nav-link"
-            :class="{ active: active === item.key }"
-            @click="$emit('select', item.key)"
+            :class="{ active: isActive(item.to) }"
           >
             <span class="nav-icon">{{ item.icon }}</span>
             <span>{{ item.label }}</span>
             <span v-if="item.badge" class="nav-badge">{{ item.badge }}</span>
-          </button>
+          </NuxtLink>
         </li>
       </ul>
 
@@ -50,22 +50,29 @@
 import { useProfileStore } from '~/stores/profile'
 const profile = useProfileStore()
 const router  = useRouter()
+const route   = useRoute()
 
-defineProps({ active: { type: String, default: 'overview' } })
-defineEmits(['select'])
-
+// Sidebar navigates between real routes now (app/pages/admin/*.vue),
+// rather than emitting a 'select' event — the layout that renders this
+// component and the page that would need to react to that event are
+// siblings, not parent/child, so the emit had nowhere to go. Routes
+// fix that plus give you deep-linking, refresh, and back/forward.
 const navItems = [
-  { key: 'overview',       label: 'Overview',       icon: '📊', badge: null  },
-  { key: 'bookings',       label: 'Bookings',        icon: '📋', badge: '142' },
-  { key: 'trips',          label: 'Trips',           icon: '🗺️', badge: null  },
-  { key: 'customers',      label: 'Customers',       icon: '👥', badge: null  },
-  { key: 'vehicles',       label: 'Vehicles',        icon: '🚙', badge: null  },
-  { key: 'guides',         label: 'Guides',          icon: '🧭', badge: null  },
-  { key: 'analytics',      label: 'Analytics',       icon: '📈', badge: null  },
-  { key: 'newsletter',     label: 'Newsletter',      icon: '📧', badge: null  },
-  { key: 'notifications',  label: 'Push Alerts',     icon: '🔔', badge: null  },
-  { key: 'content',        label: 'Content',         icon: '✍️', badge: null  },
+  { key: 'overview',      label: 'Overview',      icon: '📊', to: '/admin',               badge: null },
+  { key: 'bookings',      label: 'Bookings',      icon: '📋', to: '/admin/bookings',       badge: null },
+  { key: 'trips',         label: 'Trips',         icon: '🗺️', to: '/admin/trips',          badge: null },
+  { key: 'customers',     label: 'Customers',     icon: '👥', to: '/admin/customers',      badge: null },
+  { key: 'vehicles',      label: 'Vehicles',      icon: '🚙', to: '/admin/vehicles',       badge: null },
+  { key: 'guides',        label: 'Guides',        icon: '🧭', to: '/admin/guides',         badge: null },
+  { key: 'analytics',     label: 'Analytics',     icon: '📈', to: '/admin/analytics',      badge: null },
+  { key: 'newsletter',    label: 'Newsletter',    icon: '📧', to: '/admin/newsletter',     badge: null },
+  { key: 'notifications', label: 'Push Alerts',   icon: '🔔', to: '/admin/notifications',  badge: null },
+  { key: 'content',       label: 'Content',       icon: '✍️', to: '/admin/content',        badge: null },
 ]
+
+function isActive(to) {
+  return to === '/admin' ? route.path === '/admin' : route.path.startsWith(to)
+}
 
 function logout() {
   profile.logout()

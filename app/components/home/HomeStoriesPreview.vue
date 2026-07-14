@@ -21,7 +21,7 @@
         <div class="story-preview-content">
           <div class="story-preview-cat">{{ story.category }}</div>
           <div class="story-preview-title">{{ story.title }}</div>
-          <div class="story-preview-meta">{{ story.author.name }} · {{ story.readTime }} min read</div>
+          <div class="story-preview-meta">{{ story.author?.name || 'Summit Trail' }} · {{ story.readTime }} min read</div>
         </div>
       </NuxtLink>
     </div>
@@ -29,9 +29,9 @@
 </template>
 
 <script setup>
-import { stories } from '~~/data/demo.js'
+const { data: stories } = await useStories()
 
-const featured = computed(() => stories.slice(0, 3))
+const featured = computed(() => (stories.value || []).slice(0, 3))
 </script>
 
 <style scoped>

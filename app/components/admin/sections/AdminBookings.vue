@@ -38,13 +38,13 @@
         </thead>
         <tbody>
           <tr v-for="b in filtered" :key="b.id">
-            <td style="color:var(--orange);font-weight:700;">{{ b.id }}</td>
-            <td style="color:var(--text);font-weight:700;">{{ b.customer.name }}</td>
-            <td>{{ b.customer.country }}</td>
+            <td style="color:var(--orange);font-weight:700;">{{ b.reference }}</td>
+            <td style="color:var(--text);font-weight:700;">{{ b.customer?.name }}</td>
+            <td>{{ b.customer?.country }}</td>
             <td>{{ advName(b.adventure) }}</td>
-            <td>{{ fmt(b.departure) }}</td>
+            <td>{{ fmt(b.departureDate) }}</td>
             <td style="text-align:center;">{{ b.participants }}</td>
-            <td style="color:var(--orange);font-weight:700;">${{ b.total.toLocaleString() }}</td>
+            <td style="color:var(--orange);font-weight:700;">${{ Number(b.total).toLocaleString() }}</td>
             <td><span class="badge" :class="`badge-${statusCls(b.status)}`">{{ b.status }}</span></td>
             <td>
               <div class="row-actions">
@@ -63,21 +63,21 @@
 </template>
 
 <script setup>
-import { demoBookings, adventures } from '~~/data/demo.js'
+const { data: bookings } = await useBookings()
 const search = ref(''), statusFilter = ref('')
-const filtered = computed(() => demoBookings.filter(b => {
+const filtered = computed(() => bookings.value.filter(b => {
   const q = search.value.toLowerCase()
-  const matchQ = !q || b.id.toLowerCase().includes(q) || b.customer.name.toLowerCase().includes(q)
+  const matchQ = !q || b.reference.toLowerCase().includes(q) || b.customer?.name?.toLowerCase().includes(q)
   const matchS = !statusFilter.value || b.status === statusFilter.value
   return matchQ && matchS
 }))
-const summary = [
-  { val: demoBookings.length,                                                   label:'Total Bookings',    color:'var(--white)' },
-  { val: demoBookings.filter(b=>b.status==='confirmed').length,                 label:'Confirmed',         color:'var(--green-light)' },
-  { val: demoBookings.filter(b=>b.status==='pending-payment').length,           label:'Pending Payment',   color:'var(--gold)' },
-  { val: '$'+demoBookings.reduce((s,b)=>s+b.paid,0).toLocaleString(),           label:'Total Collected',   color:'var(--orange)' },
-]
-const advName = (id) => adventures.find(a=>a.id===id)?.title?.split(' ').slice(0,3).join(' ')+'…' || id
+const summary = computed(() => [
+  { val: bookings.value.length,                                                        label:'Total Bookings',    color:'var(--white)' },
+  { val: bookings.value.filter(b=>b.status==='confirmed').length,                       label:'Confirmed',         color:'var(--green-light)' },
+  { val: bookings.value.filter(b=>b.status==='pending-payment').length,                  label:'Pending Payment',   color:'var(--gold)' },
+  { val: '$'+bookings.value.reduce((s,b)=>s+Number(b.paid||0),0).toLocaleString(),       label:'Total Collected',   color:'var(--orange)' },
+])
+const advName = (adv) => shortTitle(adv?.title) || '—'
 const fmt = (d) => new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})
 const statusCls = (s) => s==='confirmed'?'confirmed':s==='pending-payment'?'pending':'cancelled'
 </script>

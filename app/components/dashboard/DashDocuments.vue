@@ -25,11 +25,11 @@
     <div class="dash-card" style="margin-bottom:16px;">
       <div class="section-label">Required Documents</div>
       <div class="doc-list">
-        <div class="doc-row" v-for="d in requiredDocs" :key="d.id">
+        <div class="doc-row" v-for="d in requirementsWithStatus" :key="d.id">
           <div class="doc-icon-wrap" :class="`doc-${d.status}`">{{ d.icon }}</div>
           <div class="doc-body">
             <div class="doc-name">{{ d.name }}</div>
-            <div class="doc-desc">{{ d.desc }}</div>
+            <div class="doc-desc">{{ d.description }}</div>
           </div>
           <div class="doc-right">
             <span class="doc-badge" :class="`doc-badge-${d.status}`">
@@ -39,13 +39,14 @@
             <button v-else class="btn btn-ghost btn-sm">View</button>
           </div>
         </div>
+        <div v-if="!requirementsWithStatus.length" class="empty-sm">No document requirements configured.</div>
       </div>
     </div>
 
     <div class="dash-card">
       <div class="section-label">Downloadable Resources</div>
       <div class="dl-list">
-        <div class="dl-row" v-for="r in downloads" :key="r.name">
+        <div class="dl-row" v-for="r in downloads" :key="r.id">
           <div class="dl-icon">{{ r.icon }}</div>
           <div class="dl-body">
             <div class="dl-name">{{ r.name }}</div>
@@ -59,24 +60,26 @@
 </template>
 
 <script setup>
-const requiredDocs = [
-  { id:1, name:'Passport / National ID', desc:'Valid government-issued photo ID', icon:'🪪', status:'done' },
-  { id:2, name:'Digital Waiver',         desc:'Liability and risk acknowledgement form', icon:'✍️', status:'done' },
-  { id:3, name:'Medical Clearance',      desc:'Fitness declaration signed by your doctor', icon:'🏥', status:'pending' },
-  { id:4, name:'Emergency Contact Form', desc:'Next-of-kin details for field communications', icon:'📞', status:'pending' },
-  { id:5, name:'Travel Insurance',       desc:'Policy covering evacuation and medical emergency', icon:'🛡️', status:'missing' },
-  { id:6, name:'Vaccination Record',     desc:'Yellow fever certificate (required for Bwindi)', icon:'💉', status:'missing' },
-]
-const submitted = requiredDocs.filter(d=>d.status==='done').length
-const pending   = requiredDocs.filter(d=>d.status==='pending').length
-const missing   = requiredDocs.filter(d=>d.status==='missing').length
-const downloads = [
-  { icon:'🗺️', name:'Offline Trail Maps',   meta:'Rwenzori · Kidepo · Elgon · Bwindi — 48 MB' },
-  { icon:'🎒', name:'Gear Packing List',     meta:'PDF · Essential + Premium kit lists' },
-  { icon:'📋', name:'Safety Briefing Pack', meta:'Emergency procedures, contacts, protocols' },
-  { icon:'🧭', name:'Field Guide Handbook', meta:'Flora, fauna, altitude management tips' },
-  { icon:'📷', name:'Photo Release Form',   meta:'Permission for Summit Trail to use your photos' },
-]
+import { useProfileStore } from '~/stores/profile'
+const profile = useProfileStore()
+const customerEmail = computed(() => profile.user?.email)
+
+const { data: requiredDocs } = await useDocumentRequirements()
+const { data: myDocuments }  = await useCustomerDocuments(customerEmail)
+const { data: downloads }    = await useDownloadResources()
+
+// Cross-reference each requirement definition with the customer's actual
+// uploaded documents (matched via the document.requirement relation) to
+// compute a live status instead of a hardcoded one.
+const requirementsWithStatus = computed(() => requiredDocs.value.map(req => {
+  const uploaded = myDocuments.value.find(doc => doc.requirement?.id === req.id)
+  const status = uploaded ? (uploaded.status === 'approved' ? 'done' : 'pending') : 'missing'
+  return { ...req, status }
+}))
+
+const submitted = computed(() => requirementsWithStatus.value.filter(d=>d.status==='done').length)
+const pending   = computed(() => requirementsWithStatus.value.filter(d=>d.status==='pending').length)
+const missing   = computed(() => requirementsWithStatus.value.filter(d=>d.status==='missing').length)
 </script>
 
 <style scoped>

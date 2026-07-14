@@ -21,6 +21,7 @@ export default defineNuxtConfig({
   newsletterFromName: process.env.NEWSLETTER_FROM_NAME,
   stripeSecretKey:    process.env.STRIPE_SECRET_KEY,
   strapiApiToken:     process.env.STRAPI_API_TOKEN,   // NEW — server-only CMS token
+  strapiUrlInternal:  process.env.STRAPI_URL_INTERNAL, // NEW — local URL for server-side CMS calls (avoids hairpin NAT)
 
   public: {
     appName:     process.env.NUXT_PUBLIC_APP_NAME     || 'Summit Trail Limited',
@@ -171,9 +172,11 @@ export default defineNuxtConfig({
           /*
            * connect-src:
            *   Self + production domains
-           *   ip-api.com     — geo IP lookup for analytics
+           *   cms.summittrail.visiongroup.co.ug — Strapi CMS (public content reads)
            *   maps.googleapis.com — Google Maps API calls
            *   fonts.googleapis.com — font metadata requests
+           *   (ip-api.com removed — geo lookup now runs server-side via
+           *   /api/analytics/geo, so the browser never calls it directly)
            */
           'connect-src': [
             "'self'",
@@ -181,7 +184,7 @@ export default defineNuxtConfig({
             'https://summittrail.africa.newvision.co.ug',
             'http://summittrail.africa.newvision.co.ug',
             'https://*.newvision.co.ug',
-            'http://ip-api.com',
+            'https://cms.summittrail.visiongroup.co.ug',
             'https://maps.googleapis.com',
             'https://fonts.googleapis.com',
           ],

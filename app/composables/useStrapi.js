@@ -49,8 +49,19 @@ export function useAdventures() {
 export function useAdventure(slug) {
   return useFetch(() => `${strapiBase()}/api/adventures`, {
     key: () => `strapi-adventure-${unref(slug)}`,
-    query: () => ({ 'filters[slug][$eq]': unref(slug), populate: '*' }),
-    transform: unwrapOne,
+    query: () => ({ 'filters[slug][$eqi]': unref(slug), populate: '*' }),
+    transform: (res) => {
+      const match = res?.data?.[0] ?? null
+      if (!match) {
+        console.warn(
+          `[useAdventure] No adventure found for slug "${unref(slug)}". ` +
+          `Checked ${res?.meta?.pagination?.total ?? 0} total matches. ` +
+          `If this adventure exists in Strapi, confirm it's PUBLISHED ` +
+          `(not just saved as a draft) — draft entries don't show via the public API.`
+        )
+      }
+      return match
+    },
     watch: [() => unref(slug)],
   })
 }
@@ -88,8 +99,14 @@ export function useStories() {
 export function useStory(slug) {
   return useFetch(() => `${strapiBase()}/api/stories`, {
     key: () => `strapi-story-${unref(slug)}`,
-    query: () => ({ 'filters[slug][$eq]': unref(slug), populate: '*' }),
-    transform: unwrapOne,
+    query: () => ({ 'filters[slug][$eqi]': unref(slug), populate: '*' }),
+    transform: (res) => {
+      const match = res?.data?.[0] ?? null
+      if (!match) {
+        console.warn(`[useStory] No story found for slug "${unref(slug)}" — confirm it's published, not just a draft.`)
+      }
+      return match
+    },
     watch: [() => unref(slug)],
   })
 }

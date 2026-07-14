@@ -34,6 +34,7 @@ const pageTitle = computed(() => {
     '/admin/newsletter': 'Newsletter',
     '/admin/notifications': 'Push Alerts',
     '/admin/content': 'Content',
+    '/admin/data-intake': 'Data Intake',
   }
   return map[route.path] || route.path.split('/').pop()
 })

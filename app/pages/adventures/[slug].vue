@@ -8,13 +8,13 @@
       <div class="detail-hero-content">
         <div class="detail-urgency">
           <span v-if="adv.spotsLeft <= 3" class="urgency-tag hot">🔥 Only {{ adv.spotsLeft }} Spots Left</span>
-          <span class="urgency-tag timer">⏰ Next Departure: {{ formatDate(adv.departures[0]?.date) }}</span>
+          <span class="urgency-tag timer" v-if="adv.departures?.[0]?.date">⏰ Next Departure: {{ formatDate(adv.departures[0].date) }}</span>
           <span class="urgency-tag rate">✅ {{ adv.completionRate }}% Completion Rate</span>
         </div>
         <h1 class="detail-title">{{ adv.title }}</h1>
         <div class="detail-tagline">{{ adv.tagline }}</div>
         <div class="detail-quick-stats">
-          <div class="qs-item"><div class="qs-value">{{ adv.duration }}{{ adv.durationUnit[0].toUpperCase() }}</div><div class="qs-label">Duration</div></div>
+          <div class="qs-item"><div class="qs-value">{{ adv.duration }}{{ (adv.durationUnit || 'days').charAt(0).toUpperCase() }}</div><div class="qs-label">Duration</div></div>
           <div class="qs-item"><div class="qs-value">{{ '★'.repeat(adv.difficultyLevel) }}</div><div class="qs-label">Difficulty</div></div>
           <div class="qs-item"><div class="qs-value">{{ adv.altitude }}</div><div class="qs-label">Max Altitude</div></div>
           <div class="qs-item"><div class="qs-value">{{ adv.maxGroup }}</div><div class="qs-label">Max Group</div></div>
@@ -44,7 +44,10 @@
 
           <!-- Itinerary -->
           <div v-if="activeTab === 'Itinerary'">
-            <div class="itinerary">
+            <div v-if="!adv.itinerary?.length" class="tab-empty-state">
+              No day-by-day itinerary has been added for this adventure yet.
+            </div>
+            <div v-else class="itinerary">
               <div class="itin-day" v-for="day in adv.itinerary" :key="day.day">
                 <div class="itin-num">{{ String(day.day).padStart(2, '0') }}</div>
                 <div class="itin-body">
@@ -62,15 +65,22 @@
 
           <!-- Requirements -->
           <div v-if="activeTab === 'Requirements'">
-            <div class="req-grid">
-              <div class="req-item"><div class="req-label">Fitness Level</div><div class="req-val">{{ adv.requirements.fitness }}</div></div>
-              <div class="req-item"><div class="req-label">Experience</div><div class="req-val">{{ adv.requirements.experience }}</div></div>
-              <div class="req-item"><div class="req-label">Age Range</div><div class="req-val">{{ adv.requirements.age }}</div></div>
+            <div v-if="!adv.requirements" class="tab-empty-state">
+              Requirements haven't been added for this adventure yet.
             </div>
-            <div class="section-label" style="margin-top:32px;">What to Bring</div>
-            <ul class="gear-list">
-              <li v-for="g in adv.requirements.gear" :key="g">{{ g }}</li>
-            </ul>
+            <template v-else>
+              <div class="req-grid">
+                <div class="req-item"><div class="req-label">Fitness Level</div><div class="req-val">{{ adv.requirements.fitness || '—' }}</div></div>
+                <div class="req-item"><div class="req-label">Experience</div><div class="req-val">{{ adv.requirements.experience || '—' }}</div></div>
+                <div class="req-item"><div class="req-label">Age Range</div><div class="req-val">{{ adv.requirements.age || '—' }}</div></div>
+              </div>
+              <template v-if="adv.requirements.gear?.length">
+                <div class="section-label" style="margin-top:32px;">What to Bring</div>
+                <ul class="gear-list">
+                  <li v-for="g in adv.requirements.gear" :key="g">{{ g }}</li>
+                </ul>
+              </template>
+            </template>
           </div>
 
           <!-- Reviews -->
@@ -290,6 +300,7 @@ onMounted(() => {
 .highlights-list li::before { content: '→'; color: var(--orange); font-weight: 700; flex-shrink: 0; }
 
 .itinerary { display: flex; flex-direction: column; gap: 0; }
+.tab-empty-state { color: var(--gray); font-size: 15px; padding: 30px 0; }
 .itin-day { display: grid; grid-template-columns: 64px 1fr; gap: 0; border-bottom: 1px solid var(--border); padding: 24px 0; }
 .itin-num { font-family: var(--font-display); font-size: 48px; color: var(--muted); line-height: 1; }
 .itin-title { font-family: var(--font-condensed); font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 8px; }

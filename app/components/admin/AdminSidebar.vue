@@ -68,6 +68,7 @@ const navItems = [
   { key: 'newsletter',    label: 'Newsletter',    icon: '📧', to: '/admin/newsletter',     badge: null },
   { key: 'notifications', label: 'Push Alerts',   icon: '🔔', to: '/admin/notifications',  badge: null },
   { key: 'content',       label: 'Content',       icon: '✍️', to: '/admin/content',        badge: null },
+  { key: 'data-intake',   label: 'Data Intake',   icon: '📝', to: '/admin/data-intake',    badge: null },
 ]
 
 function isActive(to) {

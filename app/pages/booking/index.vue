@@ -1,424 +1,284 @@
 <!--app/pages/booking/index.vue-->
 <template>
-  <div class="booking-page" style="padding-top:72px;">
-    <div class="booking-header section">
-      <div class="section-label">Reservations</div>
-      <h1 class="section-title">Book Your<br><span>Expedition</span></h1>
-    </div>
-
-    <div class="booking-layout section" style="padding-top:0;">
-      <!-- Steps sidebar -->
-      <div class="flow-steps">
-        <div
-          v-for="(step, i) in steps" :key="step.label"
-          class="flow-step"
-          :class="{ active: currentStep === i, done: currentStep > i }"
-        >
-          <div class="step-num">
-            <span v-if="currentStep <= i">{{ i + 1 }}</span>
-            <span v-else>✓</span>
+  <div style="padding-top:72px;">
+    <div class="booking-wizard">
+      <!-- Step sidebar -->
+      <aside class="wiz-sidebar">
+        <div class="wiz-step" v-for="s in steps" :key="s.num" :class="{ done: step > s.num, active: step === s.num }">
+          <div class="wiz-step-badge">
+            <span v-if="step > s.num">✓</span>
+            <span v-else>{{ s.num }}</span>
           </div>
-          <div class="step-info">
-            <div class="step-title">{{ step.label }}</div>
-            <div class="step-desc">{{ step.desc }}</div>
+          <div class="wiz-step-body">
+            <div class="wiz-step-title">{{ s.title }}</div>
+            <div class="wiz-step-sub">{{ s.sub }}</div>
           </div>
         </div>
-      </div>
+      </aside>
 
       <!-- Step content -->
-      <div class="flow-main">
-
-        <!-- Step 0: Select Adventure -->
-        <div v-if="currentStep === 0">
-          <div class="flow-title">Choose Your Adventure</div>
+      <main class="wiz-main">
+        <!-- STEP 1: Select Adventure -->
+        <div v-if="step === 1">
+          <h1 class="wiz-h1">Select Adventure</h1>
           <div class="adv-pick-grid">
             <div
-              v-for="adv in adventures"
-              :key="adv.id"
-              class="adv-pick-card"
-              :class="{ selected: form.adventure === adv.id }"
-              @click="form.adventure = adv.id; form.adventureSlug = adv.slug"
+              v-for="a in adventures" :key="a.id"
+              class="adv-pick-card" :class="{ selected: selectedAdventure?.id === a.id }"
+              @click="selectAdventure(a)"
             >
-              <img :src="adv.image" :alt="adv.title" class="adv-pick-img" loading="lazy" />
-              <div class="adv-pick-overlay" />
-              <div class="adv-pick-content">
-                <span class="badge" :class="`badge-${adv.difficulty}`">{{ adv.difficulty }}</span>
-                <div class="adv-pick-title">{{ adv.title }}</div>
-                <div class="adv-pick-price">From ${{ adv.basePrice.toLocaleString() }}</div>
+              <div class="adv-pick-img" :style="{ backgroundImage: `url(${a.image})` }" />
+              <div class="adv-pick-body">
+                <div class="adv-pick-title">{{ a.title }}</div>
+                <div class="adv-pick-meta">{{ a.difficulty }} · {{ a.duration }} {{ a.durationUnit }} · from ${{ a.basePrice }}</div>
               </div>
-              <div v-if="form.adventure === adv.id" class="adv-pick-selected">✓ Selected</div>
             </div>
+          </div>
+          <div class="wiz-actions">
+            <button class="btn btn-primary" :disabled="!selectedAdventure" @click="step = 2">Continue →</button>
           </div>
         </div>
 
-        <!-- Step 1: Date & Package -->
-        <div v-if="currentStep === 1">
-          <div class="flow-title">Select Date & Package</div>
-          <div class="step1-layout">
-            <div>
-              <label class="input-label">Departure Date</label>
-              <div class="calendar-grid">
-                <div class="cal-day-header" v-for="d in ['MON','TUE','WED','THU','FRI','SAT','SUN']" :key="d">{{ d }}</div>
+        <!-- STEP 2: Date & Package -->
+        <div v-else-if="step === 2 && selectedAdventure">
+          <h1 class="wiz-h1">Select Date &amp; Package</h1>
+
+          <div class="date-package-layout">
+            <div class="cal-col">
+              <div class="cal-label">Departure Date</div>
+              <div class="cal-nav-row">
+                <button class="btn btn-ghost btn-sm" @click="prevMonth">← Prev</button>
+                <div class="cal-month-title">{{ monthTitle }}</div>
+                <button class="btn btn-ghost btn-sm" @click="nextMonth">Next →</button>
+              </div>
+
+              <div class="month-grid">
+                <div class="cal-head" v-for="d in dayHeaders" :key="d">{{ d }}</div>
                 <div
-                  v-for="day in calDays" :key="day.num"
-                  class="cal-day"
+                  v-for="day in calDays" :key="day.key"
+                  class="cal-cell"
                   :class="{
-                    available: day.available,
-                    'has-trip': day.hasTrip,
-                    selected: form.date === day.dateStr,
-                    empty: !day.num
+                    'cal-cell--empty': !day.date,
+                    'cal-cell--scheduled': day.departure,
+                    'cal-cell--unavailable': day.date && !day.departure && day.isPast,
+                    'cal-cell--selected': day.date === form.departureDate,
                   }"
-                  @click="day.available && (form.date = day.dateStr)"
+                  @click="day.departure && !day.departure.disabled && (form.departureDate = day.date)"
                 >
-                  {{ day.num }}
+                  <span v-if="day.date">{{ day.num }}</span>
                 </div>
               </div>
+
               <div class="cal-legend">
-                <span><span class="cal-dot" style="background:var(--orange);" />Scheduled Trip</span>
-                <span><span class="cal-dot" style="background:var(--muted);" />Available</span>
-                <span><span class="cal-dot" style="background:rgba(255,255,255,0.1);" />Unavailable</span>
-              </div>
-            </div>
-            <div>
-              <label class="input-label">Package</label>
-              <div class="package-opts" style="margin-bottom:24px;">
-                <div
-                  v-for="pkg in selectedPackages"
-                  :key="pkg.id"
-                  class="package-opt"
-                  :class="{ selected: form.package === pkg.id }"
-                  @click="form.package = pkg.id"
-                >
-                  <div>
-                    <div class="pkg-name">{{ pkg.label }}</div>
-                    <div style="font-size:12px; color:var(--gray); margin-top:4px;">{{ pkg.desc }}</div>
-                  </div>
-                  <div class="pkg-price">${{ pkg.price.toLocaleString() }}</div>
-                </div>
-              </div>
-              <label class="input-label">Add-ons</label>
-              <div class="addons">
-                <div
-                  v-for="addon in selectedAddons"
-                  :key="addon.id"
-                  class="addon"
-                  @click="toggleAddon(addon.id)"
-                >
-                  <div class="addon-check" :class="{ checked: form.addons.includes(addon.id) }" />
-                  <span class="addon-label">{{ addon.label }}</span>
-                  <span class="addon-price">+${{ addon.price }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 2: Participant details -->
-        <div v-if="currentStep === 2">
-          <div class="flow-title">Participant Details</div>
-          <div class="form-grid">
-            <div class="form-field">
-              <label class="input-label">First Name</label>
-              <input class="input" v-model="form.firstName" placeholder="Alex" />
-            </div>
-            <div class="form-field">
-              <label class="input-label">Last Name</label>
-              <input class="input" v-model="form.lastName" placeholder="Mwangi" />
-            </div>
-            <div class="form-field">
-              <label class="input-label">Email Address</label>
-              <input class="input" v-model="form.email" type="email" placeholder="you@email.com" />
-            </div>
-            <div class="form-field">
-              <label class="input-label">Phone Number</label>
-              <input class="input" v-model="form.phone" placeholder="+256 700 000000" />
-            </div>
-            <div class="form-field">
-              <label class="input-label">Country</label>
-              <input class="input" v-model="form.country" placeholder="Uganda" />
-            </div>
-            <div class="form-field">
-              <label class="input-label">Number of Participants</label>
-              <select class="input" v-model.number="form.participants">
-                <option v-for="n in 8" :key="n" :value="n">{{ n }} person{{ n > 1 ? 's' : '' }}</option>
-              </select>
-            </div>
-            <div class="form-field form-field--full">
-              <label class="input-label">Special Requirements / Medical Notes</label>
-              <textarea class="input" v-model="form.notes" rows="3" placeholder="Any dietary requirements, medical conditions, or special requests..." style="resize:vertical;" />
-            </div>
-            <div class="form-field form-field--full">
-              <label class="input-label">Upload ID Document (optional)</label>
-              <div class="upload-box" @dragover.prevent @drop.prevent="handleDrop">
-                <div class="upload-icon">📁</div>
-                <div class="upload-text">Drag & drop or <span style="color:var(--orange); cursor:pointer;" @click="$refs.fileInput.click()">browse files</span></div>
-                <div class="upload-hint">Passport or National ID · PDF, JPG, PNG · Max 5MB</div>
-                <input ref="fileInput" type="file" style="display:none;" accept=".pdf,.jpg,.jpeg,.png" @change="handleFile" />
-                <div v-if="form.document" class="upload-done">✅ {{ form.document }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 3: Payment -->
-        <div v-if="currentStep === 3">
-          <div class="flow-title">Payment</div>
-          <div class="payment-layout">
-            <div>
-              <label class="input-label">Payment Method</label>
-              <div class="payment-methods">
-                <div
-                  v-for="pm in paymentMethods"
-                  :key="pm.id"
-                  class="pay-method"
-                  :class="{ selected: form.paymentMethod === pm.id }"
-                  @click="form.paymentMethod = pm.id"
-                >
-                  <div class="pay-icon">{{ pm.icon }}</div>
-                  <div class="pay-name">{{ pm.label }}</div>
-                  <div class="pay-desc">{{ pm.desc }}</div>
-                </div>
-              </div>
-
-              <!-- Mobile Money fields -->
-              <div v-if="form.paymentMethod === 'mtn' || form.paymentMethod === 'airtel'" class="pm-fields">
-                <label class="input-label">Mobile Money Number</label>
-                <input class="input" v-model="form.momoNumber" :placeholder="form.paymentMethod === 'mtn' ? '077XXXXXXX' : '075XXXXXXX'" />
-                <div style="font-size:13px; color:var(--gray); margin-top:8px;">You will receive a prompt on your phone to confirm the payment.</div>
-              </div>
-
-              <!-- Card fields -->
-              <div v-if="form.paymentMethod === 'card'" class="pm-fields">
-                <label class="input-label">Card Number</label>
-                <input class="input" v-model="form.cardNumber" placeholder="4242 4242 4242 4242" maxlength="19" />
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
-                  <div>
-                    <label class="input-label">Expiry</label>
-                    <input class="input" v-model="form.cardExpiry" placeholder="MM/YY" maxlength="5" />
-                  </div>
-                  <div>
-                    <label class="input-label">CVV</label>
-                    <input class="input" v-model="form.cardCvv" placeholder="123" maxlength="3" />
-                  </div>
-                </div>
-              </div>
-
-              <!-- Installment -->
-              <div v-if="form.paymentMethod === 'installment'" class="pm-fields">
-                <div class="installment-plan">
-                  <div class="inst-item" v-for="inst in installmentPlan" :key="inst.label">
-                    <div class="inst-label">{{ inst.label }}</div>
-                    <div class="inst-amount">${{ inst.amount }}</div>
-                    <div class="inst-due">Due: {{ inst.due }}</div>
-                  </div>
-                </div>
+                <span><i class="dot dot-scheduled" /> Scheduled Trip</span>
+                <span><i class="dot dot-available" /> Available</span>
+                <span><i class="dot dot-unavailable" /> Unavailable</span>
               </div>
             </div>
 
-            <!-- Order summary -->
-            <div class="order-summary">
-              <div class="os-title">Order Summary</div>
-              <div class="os-row" v-if="selectedAdv">
-                <span>{{ selectedAdv.title.split('–')[0] }}</span>
-                <span>${{ selectedPkg?.price?.toLocaleString() }}</span>
+            <div class="package-col">
+              <div class="cal-label">Package</div>
+              <div
+                v-for="pkg in packages" :key="pkg.id"
+                class="package-opt" :class="{ selected: form.package === pkg.id }"
+                @click="form.package = pkg.id"
+              >
+                <div class="package-opt-name">{{ pkg.label }}</div>
+                <div class="package-opt-desc">{{ pkg.desc }}</div>
+                <div class="package-opt-price">${{ pkg.price?.toLocaleString() }}</div>
               </div>
-              <div class="os-row" v-for="addon in selectedAddonItems" :key="addon.id">
+
+              <div class="cal-label" style="margin-top:24px;" v-if="selectedAdventure.addons?.length">Add-ons</div>
+              <label class="addon-row" v-for="addon in selectedAdventure.addons" :key="addon.key">
+                <input type="checkbox" :value="addon.key" v-model="form.addons" />
                 <span>{{ addon.label }}</span>
-                <span>+${{ addon.price }}</span>
-              </div>
-              <div class="os-divider" />
-              <div class="os-total">
-                <span>Total</span>
-                <span>${{ grandTotal.toLocaleString() }}</span>
-              </div>
-              <div v-if="form.participants > 1" class="os-note">× {{ form.participants }} participants</div>
-              <div class="os-security">🔒 Secured with SSL · Payments processed safely</div>
+                <span class="addon-row-price">+${{ addon.price }}</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="wiz-actions">
+            <button class="btn btn-ghost" @click="step = 1">← Back</button>
+            <button class="btn btn-primary" :disabled="!form.departureDate" @click="step = 3">Continue →</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: Participant Details -->
+        <div v-else-if="step === 3">
+          <h1 class="wiz-h1">Participant Details</h1>
+          <div class="form-grid">
+            <div class="field"><label class="input-label">Your Name *</label><input class="input" v-model="form.name" /></div>
+            <div class="field"><label class="input-label">Email *</label><input class="input" type="email" v-model="form.email" /></div>
+            <div class="field"><label class="input-label">Phone</label><input class="input" v-model="form.phone" /></div>
+            <div class="field"><label class="input-label">Country</label><input class="input" v-model="form.country" /></div>
+            <div class="field"><label class="input-label">Participants</label><input class="input" type="number" min="1" v-model.number="form.participants" /></div>
+          </div>
+          <div class="field-block">
+            <label class="input-label">Anything we should know?</label>
+            <textarea class="input" v-model="form.notes" rows="3" placeholder="Dietary needs, medical conditions, special requests…" />
+          </div>
+          <div class="wiz-actions">
+            <button class="btn btn-ghost" @click="step = 2">← Back</button>
+            <button class="btn btn-primary" :disabled="!form.name || !form.email" @click="step = 4">Continue →</button>
+          </div>
+        </div>
+
+        <!-- STEP 4: Payment / Review -->
+        <div v-else-if="step === 4">
+          <div v-if="!submitted">
+            <h1 class="wiz-h1">Review &amp; Confirm</h1>
+            <div class="review-card">
+              <div class="review-row"><span>Adventure</span><strong>{{ selectedAdventure.title }}</strong></div>
+              <div class="review-row"><span>Departure</span><strong>{{ fmt(form.departureDate) }}</strong></div>
+              <div class="review-row"><span>Package</span><strong>{{ selectedPackageLabel }}</strong></div>
+              <div class="review-row"><span>Participants</span><strong>{{ form.participants }}</strong></div>
+              <div class="review-row"><span>Name</span><strong>{{ form.name }}</strong></div>
+              <div class="review-row"><span>Email</span><strong>{{ form.email }}</strong></div>
+              <div class="review-total"><span>Total</span><strong>${{ total.toLocaleString() }}</strong></div>
+            </div>
+            <p class="summary-note">No payment is taken on this page — you'll receive a confirmation email with payment instructions.</p>
+            <div v-if="error" class="error-msg">{{ error }}</div>
+            <div class="wiz-actions">
+              <button class="btn btn-ghost" @click="step = 3">← Back</button>
+              <button class="btn btn-primary" :disabled="submitting" @click="submitBooking">
+                {{ submitting ? 'Submitting…' : 'Confirm Booking' }}
+              </button>
+            </div>
+          </div>
+          <div v-else class="booking-success">
+            <div class="success-icon">✅</div>
+            <h2>Booking Request Received</h2>
+            <p>Reference: <strong>{{ bookingReference }}</strong></p>
+            <p>We've logged your request for <strong>{{ selectedAdventure.title }}</strong>. Our team will reach out at {{ form.email }} to confirm details and arrange payment.</p>
+            <div style="display:flex; gap:14px; justify-content:center; margin-top:24px;">
+              <NuxtLink to="/" class="btn btn-primary">Back to Home</NuxtLink>
+              <NuxtLink to="/adventures" class="btn btn-outline">Browse More Adventures</NuxtLink>
             </div>
           </div>
         </div>
-
-        <!-- Step 4: Confirmation -->
-        <div v-if="currentStep === 4" class="confirmation">
-          <div class="conf-icon">🏔️</div>
-          <h2 class="conf-title">You're Booked!</h2>
-          <div class="conf-id">Booking ID: <strong>STL-{{ bookingId }}</strong></div>
-          <p class="conf-text">
-            A confirmation has been sent to <strong>{{ form.email }}</strong>.
-            Your digital itinerary and preparation checklist are ready in your
-            <NuxtLink to="/dashboard" style="color:var(--orange);">Dashboard</NuxtLink>.
-          </p>
-          <div class="conf-details">
-            <div class="conf-row"><span>Adventure</span><span>{{ selectedAdv?.title }}</span></div>
-            <div class="conf-row"><span>Departure</span><span>{{ formatDate(form.date) }}</span></div>
-            <div class="conf-row"><span>Participants</span><span>{{ form.participants }}</span></div>
-            <div class="conf-row"><span>Total Paid</span><span style="color:var(--orange);">${{ grandTotal.toLocaleString() }}</span></div>
-          </div>
-          <div class="conf-actions">
-            <NuxtLink to="/dashboard" class="btn btn-primary btn-lg">Go to Dashboard →</NuxtLink>
-            <NuxtLink to="/adventures" class="btn btn-outline btn-lg">Book Another</NuxtLink>
-          </div>
-        </div>
-
-        <!-- Navigation buttons -->
-        <div class="flow-nav" v-if="currentStep < 4">
-          <button v-if="currentStep > 0" class="btn btn-ghost" @click="currentStep--">← Back</button>
-          <div style="flex:1;" />
-          <button
-            v-if="currentStep < 3"
-            class="btn btn-primary btn-lg"
-            :disabled="!canProceed"
-            @click="next"
-          >Continue →</button>
-          <button
-            v-if="currentStep === 3"
-            class="btn btn-primary btn-lg"
-            :disabled="!form.paymentMethod || submitting"
-            @click="submit"
-          >{{ submitting ? 'Processing...' : `Pay $${grandTotal.toLocaleString()} Now` }}</button>
-        </div>
-      </div>
+      </main>
     </div>
   </div>
 </template>
 
 <script setup>
-import { adventures } from '~~/data/demo.js'
-import { useProfileStore } from '~/stores/profile'
-import { useAnalyticsStore } from '~/stores/analytics'
+useHead({ title: 'Book Your Adventure – Summit Trail' })
 
-const profile = useProfileStore()
-const analytics = useAnalyticsStore()
-const route = useRoute()
-
-useHead({ title: 'Book an Expedition – Summit Trail' })
-
-const currentStep = ref(0)
-const submitting = ref(false)
-const bookingId = ref('')
-
-const form = reactive({
-  adventure: route.query.adventure || '',
-  adventureSlug: '',
-  date: '',
-  package: 'essential',
-  addons: [],
-  participants: 1,
-  firstName: profile.user?.name?.split(' ')[0] || '',
-  lastName: profile.user?.name?.split(' ')[1] || '',
-  email: profile.user?.email || '',
-  phone: profile.user?.phone || '',
-  country: profile.user?.country || '',
-  notes: '',
-  document: '',
-  paymentMethod: '',
-  momoNumber: '',
-  cardNumber: '',
-  cardExpiry: '',
-  cardCvv: '',
-})
+const { data: adventures } = await useAdventures()
 
 const steps = [
-  { label: 'Select Adventure', desc: 'Choose your expedition' },
-  { label: 'Date & Package', desc: 'Pick departure + package' },
-  { label: 'Participant Details', desc: 'Names, contacts, docs' },
-  { label: 'Payment', desc: 'Secure checkout' },
+  { num: 1, title: 'Select Adventure',    sub: 'Choose your expedition' },
+  { num: 2, title: 'Date & Package',      sub: 'Pick departure + package' },
+  { num: 3, title: 'Participant Details', sub: 'Names, contacts, docs' },
+  { num: 4, title: 'Payment',             sub: 'Secure checkout' },
 ]
+const step = ref(1)
+const selectedAdventure = ref(null)
 
-const selectedAdv = computed(() => adventures.find(a => a.id === form.adventure))
+function selectAdventure(a) {
+  selectedAdventure.value = a
+  form.departureDate = ''
+  form.package = 'essential'
+  form.addons = []
+}
 
-const selectedPackages = computed(() => {
-  if (!selectedAdv.value) return []
-  return [
-    { id: 'essential', label: 'Essential', price: selectedAdv.value.basePrice, desc: 'Core experience, bring your own gear' },
-    { id: 'premium', label: 'Premium + Gear', price: selectedAdv.value.premiumPrice, desc: 'Includes full gear rental kit' },
-    { id: 'vip', label: 'VIP Private', price: selectedAdv.value.vipPrice, desc: 'Private group, dedicated vehicle, priority support' },
-  ]
+const form = reactive({
+  name: '', email: '', phone: '', country: '',
+  departureDate: '', package: 'essential', participants: 1, addons: [], notes: '',
 })
 
-const selectedPkg = computed(() => selectedPackages.value.find(p => p.id === form.package))
-const selectedAddons = computed(() => selectedAdv.value?.addons || [])
-const selectedAddonItems = computed(() => selectedAddons.value.filter(a => form.addons.includes(a.id)))
+// ── Calendar (month + year header was the missing piece) ────────────────
+const now = new Date()
+const viewYear = ref(now.getFullYear())
+const viewMonth = ref(now.getMonth())
+const dayHeaders = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-const grandTotal = computed(() => {
-  const base = selectedPkg.value?.price || 0
-  const addonsTotal = selectedAddonItems.value.reduce((s, a) => s + a.price, 0)
-  return (base + addonsTotal) * form.participants
-})
+const monthTitle = computed(() =>
+  new Date(viewYear.value, viewMonth.value, 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+)
+function prevMonth() {
+  if (viewMonth.value === 0) { viewMonth.value = 11; viewYear.value-- } else viewMonth.value--
+}
+function nextMonth() {
+  if (viewMonth.value === 11) { viewMonth.value = 0; viewYear.value++ } else viewMonth.value++
+}
 
-const installmentPlan = computed(() => {
-  const total = grandTotal.value
-  return [
-    { label: '1st Payment (30%)', amount: Math.round(total * 0.3), due: 'Today' },
-    { label: '2nd Payment (40%)', amount: Math.round(total * 0.4), due: '30 days before trip' },
-    { label: 'Final Payment (30%)', amount: Math.round(total * 0.3), due: '7 days before trip' },
-  ]
-})
-
-const paymentMethods = [
-  { id: 'mtn', icon: '📱', label: 'MTN MoMo', desc: 'Mobile Money prompt' },
-  { id: 'airtel', icon: '📱', label: 'Airtel Money', desc: 'Mobile Money prompt' },
-  { id: 'card', icon: '💳', label: 'Visa / Mastercard', desc: 'Secure card payment' },
-  { id: 'paypal', icon: '🌐', label: 'PayPal', desc: 'International transfer' },
-  { id: 'stripe', icon: '💙', label: 'Stripe', desc: 'Global card gateway' },
-  { id: 'installment', icon: '📅', label: 'Installments', desc: 'Pay in 3 parts' },
-]
-
-// Calendar logic – generate April 2025
 const calDays = computed(() => {
-  const tripDates = selectedAdv.value?.departures.map(d => d.date) || []
-  const days = []
-  // Offset for Monday start
-  const firstDay = new Date(2025, 3, 1).getDay() // April 2025 starts Tuesday (2), but adjust for Mon=0
+  const year = viewYear.value
+  const month = viewMonth.value
+  const firstDay = new Date(year, month, 1).getDay()
   const offset = firstDay === 0 ? 6 : firstDay - 1
-  for (let i = 0; i < offset; i++) days.push({ num: '', available: false, hasTrip: false, dateStr: '' })
-  for (let d = 1; d <= 30; d++) {
-    const dateStr = `2025-04-${String(d).padStart(2, '0')}`
-    const hasTrip = tripDates.includes(dateStr)
-    days.push({ num: d, available: d >= 10, hasTrip, dateStr })
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const today = new Date(); today.setHours(0,0,0,0)
+  const departures = selectedAdventure.value?.departures || []
+
+  const days = []
+  for (let i = 0; i < offset; i++) days.push({ key: `empty-${i}`, date: null })
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    const dep = departures.find(x => x.date === dateStr)
+    const cellDate = new Date(year, month, d)
+    days.push({
+      key: dateStr, date: dateStr, num: d,
+      departure: dep ? { ...dep, disabled: dep.status === 'full' || dep.status === 'closed' } : null,
+      isPast: cellDate < today,
+    })
   }
   return days
 })
 
-const canProceed = computed(() => {
-  if (currentStep.value === 0) return !!form.adventure
-  if (currentStep.value === 1) return !!form.date
-  if (currentStep.value === 2) return form.firstName && form.email && form.phone
-  return true
+// ── Packages & totals ────────────────────────────────────────────────────
+const packages = computed(() => selectedAdventure.value ? [
+  { id: 'essential', label: 'Essential',      desc: 'Core experience, bring your own gear', price: selectedAdventure.value.basePrice },
+  { id: 'premium',   label: 'Premium + Gear',  desc: 'Includes full gear rental kit',        price: selectedAdventure.value.premiumPrice },
+  { id: 'vip',       label: 'VIP Private',     desc: 'Private group, dedicated vehicle, priority support', price: selectedAdventure.value.vipPrice },
+] : [])
+
+const selectedPackageLabel = computed(() => packages.value.find(p => p.id === form.package)?.label || '—')
+
+const total = computed(() => {
+  if (!selectedAdventure.value) return 0
+  const pkg = packages.value.find(p => p.id === form.package)
+  const base = (pkg?.price || selectedAdventure.value.basePrice || 0) * (form.participants || 1)
+  const addonsTotal = form.addons.reduce((sum, key) => {
+    const a = (selectedAdventure.value.addons || []).find(a => a.key === key)
+    return sum + (a?.price || 0)
+  }, 0)
+  return base + addonsTotal
 })
 
-function toggleAddon(id) {
-  const idx = form.addons.indexOf(id)
-  if (idx === -1) form.addons.push(id)
-  else form.addons.splice(idx, 1)
+function fmt(d) {
+  return d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
 }
 
-function next() {
-  if (canProceed.value) currentStep.value++
-}
+// ── Submit ────────────────────────────────────────────────────────────────
+const submitting = ref(false)
+const submitted = ref(false)
+const bookingReference = ref('')
+const error = ref(null)
 
-function formatDate(d) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-}
-
-function handleFile(e) {
-  const f = e.target.files[0]
-  if (f) form.document = f.name
-}
-
-function handleDrop(e) {
-  const f = e.dataTransfer.files[0]
-  if (f) form.document = f.name
-}
-
-async function submit() {
+async function submitBooking() {
   submitting.value = true
+  error.value = null
   try {
-    await new Promise(r => setTimeout(r, 1500))
-    bookingId.value = Math.floor(1000 + Math.random() * 9000).toString()
-    profile.logAction({ type: 'booking', label: `Booked: ${selectedAdv.value?.title}`, route: '/dashboard' })
-    analytics.trackEvent('booking', 'complete', form.adventure, grandTotal.value)
-    currentStep.value = 4
+    const result = await $fetch('/api/bookings/create', {
+      method: 'POST',
+      body: {
+        customer: { name: form.name, email: form.email, phone: form.phone, country: form.country },
+        adventureId: selectedAdventure.value.documentId || selectedAdventure.value.id,
+        adventureSlug: selectedAdventure.value.slug,
+        departureDate: form.departureDate,
+        package: form.package,
+        participants: form.participants,
+        addons: form.addons,
+        total: total.value,
+        notes: form.notes,
+      },
+    })
+    bookingReference.value = result.reference
+    submitted.value = true
+  } catch (e) {
+    error.value = e?.data?.statusMessage || 'Could not submit your booking. Please try again or contact us directly.'
   } finally {
     submitting.value = false
   }
@@ -426,123 +286,80 @@ async function submit() {
 </script>
 
 <style scoped>
-.booking-page { background: var(--deep); min-height: 100vh; }
-.booking-header { background: var(--deep); border-bottom: 1px solid var(--border); }
+.booking-wizard { display: grid; grid-template-columns: 300px 1fr; max-width: 1200px; margin: 0 auto; gap: 0; padding-bottom: 80px; }
+.wiz-sidebar { border-right: 1px solid var(--border); padding: 40px 24px; }
+.wiz-step { display: flex; gap: 14px; padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+.wiz-step:last-child { border-bottom: none; }
+.wiz-step-badge {
+  width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-family: var(--font-condensed); font-weight: 700; color: var(--gray);
+}
+.wiz-step.done .wiz-step-badge { background: var(--green-light); border-color: var(--green-light); color: var(--black); }
+.wiz-step.active .wiz-step-badge { border-color: var(--orange); color: var(--orange); }
+.wiz-step-title { font-family: var(--font-condensed); font-weight: 700; color: var(--gray); font-size: 15px; }
+.wiz-step.active .wiz-step-title { color: var(--orange); }
+.wiz-step-sub { font-size: 12px; color: var(--gray); margin-top: 2px; }
+.wiz-main { padding: 40px; }
+.wiz-h1 { font-family: var(--font-display); font-size: 32px; color: var(--text); margin-bottom: 28px; }
+.wiz-actions { display: flex; gap: 14px; margin-top: 28px; }
 
-.booking-layout { display: grid; grid-template-columns: 260px 1fr; gap: 40px; }
+.adv-pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.adv-pick-card { border: 1px solid var(--border); cursor: pointer; border-radius: 4px; overflow: hidden; transition: border-color 0.2s; }
+.adv-pick-card.selected { border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange); }
+.adv-pick-img { height: 120px; background-size: cover; background-position: center; }
+.adv-pick-body { padding: 14px; }
+.adv-pick-title { font-family: var(--font-condensed); font-weight: 700; color: var(--text); font-size: 14px; margin-bottom: 4px; }
+.adv-pick-meta { font-size: 12px; color: var(--gray); }
 
-/* Steps */
-.flow-steps { position: sticky; top: 90px; align-self: start; }
-.flow-step { display: flex; align-items: flex-start; gap: 16px; padding: 20px 0; border-bottom: 1px solid var(--border); }
-.step-num { width: 36px; height: 36px; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: var(--font-condensed); font-size: 16px; font-weight: 700; color: var(--gray); transition: all .2s; }
-.flow-step.active .step-num { border-color: var(--orange); color: var(--orange); background: rgba(232,98,42,0.1); }
-.flow-step.done .step-num { border-color: var(--green-light); background: var(--green-light); color: #fff; }
-.step-title { font-family: var(--font-condensed); font-size: 16px; font-weight: 700; color: var(--gray); margin-bottom: 4px; }
-.flow-step.active .step-title { color: var(--orange); }
-.flow-step.done .step-title { color: var(--text); }
-.step-desc { font-size: 13px; color: var(--muted); }
+.date-package-layout { display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; }
+.cal-label { font-family: var(--font-condensed); font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gray); margin-bottom: 14px; }
+.cal-nav-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.cal-month-title { font-family: var(--font-display); font-size: 20px; color: var(--text); }
+.month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-head { font-family: var(--font-condensed); font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--gray); text-align: center; padding-bottom: 6px; }
+.cal-cell {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  background: var(--panel); border: 1px solid transparent; font-family: var(--font-condensed); font-weight: 600; color: var(--light);
+  border-radius: 3px; cursor: default;
+}
+.cal-cell--empty { background: none; }
+.cal-cell--scheduled { background: rgba(232,98,42,0.15); color: var(--orange); cursor: pointer; font-weight: 700; }
+.cal-cell--scheduled:hover { background: rgba(232,98,42,0.3); }
+.cal-cell--unavailable { color: var(--gray); opacity: 0.4; }
+.cal-cell--selected { background: var(--orange) !important; color: var(--black) !important; }
+.cal-legend { display: flex; gap: 18px; margin-top: 16px; font-size: 12px; color: var(--gray); }
+.cal-legend .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
+.dot-scheduled { background: var(--orange); }
+.dot-available { background: var(--gray); opacity: 0.5; }
+.dot-unavailable { background: var(--gray); opacity: 0.25; }
 
-/* Main */
-.flow-main { background: var(--charcoal); border: 1px solid var(--border); padding: 48px; }
-.flow-title { font-family: var(--font-display); font-size: 32px; color: var(--text); margin-bottom: 32px; }
-.flow-nav { display: flex; align-items: center; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border); gap: 12px; }
+.package-col .package-opt { border: 1px solid var(--border); padding: 16px; border-radius: 4px; margin-bottom: 10px; cursor: pointer; }
+.package-opt.selected { border-color: var(--orange); background: rgba(232,98,42,0.08); }
+.package-opt-name { font-family: var(--font-condensed); font-weight: 700; color: var(--text); font-size: 15px; }
+.package-opt-desc { font-size: 12px; color: var(--gray); margin: 4px 0 8px; }
+.package-opt-price { color: var(--orange); font-family: var(--font-display); font-size: 22px; }
+.addon-row { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--light); cursor: pointer; padding: 6px 0; }
+.addon-row-price { margin-left: auto; color: var(--orange); }
 
-/* Adventure picker */
-.adv-pick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.adv-pick-card { position: relative; height: 180px; overflow: hidden; cursor: pointer; border: 2px solid var(--border); transition: border-color .2s; }
-.adv-pick-card.selected { border-color: var(--orange); }
-.adv-pick-img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s; }
-.adv-pick-card:hover .adv-pick-img { transform: scale(1.05); }
-.adv-pick-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,10,8,0.85), transparent 50%); }
-.adv-pick-content { position: absolute; bottom: 0; left: 0; right: 0; padding: 14px; }
-.adv-pick-title { font-family: var(--font-condensed); font-size: 14px; font-weight: 700; color: var(--white); margin: 6px 0 4px; line-height: 1.2; }
-.adv-pick-price { font-family: var(--font-condensed); font-size: 14px; color: var(--orange); font-weight: 700; }
-.adv-pick-selected { position: absolute; top: 0; right: 0; background: var(--orange); color: var(--black); font-family: var(--font-condensed); font-size: 13px; font-weight: 700; padding: 5px 10px; }
+.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
+.input-label { display: block; font-family: var(--font-condensed); font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--gray); margin-bottom: 6px; }
 
-/* Step 1 layout */
-.step1-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-bottom: 12px; }
-.cal-day-header { font-family: var(--font-condensed); font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--gray); text-align: center; padding: 6px; }
-.cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-family: var(--font-condensed); font-size: 13px; font-weight: 600; color: var(--muted); }
-.cal-day.available { color: var(--text); background: rgba(255,255,255,0.04); cursor: pointer; transition: all .15s; }
-.cal-day.available:hover { background: rgba(232,98,42,0.15); color: var(--orange); }
-.cal-day.has-trip::after { content: '●'; display: block; font-size: 5px; color: var(--orange); margin-top: 1px; }
-.cal-day.selected { background: var(--orange); color: var(--black); }
-.cal-legend { display: flex; gap: 16px; font-family: var(--font-condensed); font-size: 13px; color: var(--gray); }
-.cal-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
-.package-opts { display: flex; flex-direction: column; gap: 8px; }
-.package-opt { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border: 1px solid var(--border); cursor: pointer; transition: all .15s; }
-.package-opt.selected { border-color: var(--orange); background: rgba(232,98,42,0.06); }
-.pkg-name { font-family: var(--font-condensed); font-size: 15px; font-weight: 700; color: var(--text); }
-.pkg-price { font-family: var(--font-condensed); font-size: 18px; font-weight: 700; color: var(--orange); }
-.addons { }
-.addon { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
-.addon-check { width: 18px; height: 18px; border: 1px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .15s; }
-.addon-check.checked { background: var(--orange); border-color: var(--orange); }
-.addon-check.checked::after { content: '✓'; color: var(--black); font-size: 13px; font-weight: 700; }
-.addon-label { flex: 1; font-family: var(--font-condensed); font-size: 14px; color: var(--light); }
-.addon-price { font-family: var(--font-condensed); font-size: 13px; color: var(--gray); }
+.review-card { background: var(--panel); border: 1px solid var(--border); padding: 24px; margin-bottom: 16px; }
+.review-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: var(--light); }
+.review-total { display: flex; justify-content: space-between; align-items: center; padding-top: 16px; margin-top: 8px; font-family: var(--font-display); font-size: 26px; color: var(--orange); }
+.summary-note { font-size: 12px; color: var(--gray); margin-bottom: 16px; }
+.error-msg { color: var(--red); font-size: 13px; margin-bottom: 10px; }
 
-/* Step 2 */
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.form-field { }
-.form-field--full { grid-column: span 2; }
-.upload-box { border: 2px dashed var(--border); padding: 32px 24px; text-align: center; cursor: pointer; transition: border-color .2s; }
-.upload-box:hover { border-color: var(--orange); }
-.upload-icon { font-size: 32px; margin-bottom: 10px; }
-.upload-text { font-family: var(--font-condensed); font-size: 15px; color: var(--light); margin-bottom: 6px; }
-.upload-hint { font-size: 12px; color: var(--gray); }
-.upload-done { margin-top: 12px; font-family: var(--font-condensed); font-size: 14px; color: var(--green-light); }
-
-/* Step 3 */
-.payment-layout { display: grid; grid-template-columns: 1fr 320px; gap: 40px; }
-.payment-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px; }
-.pay-method { padding: 16px 12px; border: 2px solid var(--border); cursor: pointer; transition: all .2s; text-align: center; }
-.pay-method.selected { border-color: var(--orange); background: rgba(232,98,42,0.06); }
-.pay-icon { font-size: 26px; margin-bottom: 8px; }
-.pay-name { font-family: var(--font-condensed); font-size: 13px; font-weight: 700; color: var(--text); }
-.pay-desc { font-size: 13px; color: var(--gray); margin-top: 3px; }
-.pm-fields { background: var(--panel); border: 1px solid var(--border); padding: 20px; margin-top: 0; }
-.installment-plan { display: flex; flex-direction: column; gap: 0; }
-.inst-item { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); align-items: center; }
-.inst-label { font-family: var(--font-condensed); font-size: 14px; color: var(--light); }
-.inst-amount { font-family: var(--font-condensed); font-size: 18px; font-weight: 700; color: var(--orange); }
-.inst-due { font-family: var(--font-condensed); font-size: 12px; color: var(--gray); }
-.order-summary { background: var(--panel); border: 1px solid var(--border); padding: 24px; position: sticky; top: 90px; }
-.os-title { font-family: var(--font-display); font-size: 22px; color: var(--text); margin-bottom: 16px; }
-.os-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-family: var(--font-condensed); font-size: 14px; color: var(--light); }
-.os-divider { height: 1px; background: var(--border); margin: 8px 0; }
-.os-total { display: flex; justify-content: space-between; font-family: var(--font-condensed); font-size: 20px; font-weight: 700; color: var(--text); padding: 12px 0; }
-.os-note { font-size: 12px; color: var(--gray); margin-bottom: 16px; }
-.os-security { font-size: 12px; color: var(--gray); text-align: center; margin-top: 16px; }
-
-/* Confirmation */
-.confirmation { text-align: center; padding: 40px 0; }
-.conf-icon { font-size: 72px; margin-bottom: 20px; }
-.conf-title { font-family: var(--font-display); font-size: 56px; color: var(--text); margin-bottom: 8px; }
-.conf-id { font-family: var(--font-condensed); font-size: 16px; color: var(--gray); margin-bottom: 20px; }
-.conf-id strong { color: var(--orange); }
-.conf-text { font-size: 15px; color: var(--light); line-height: 1.7; max-width: 480px; margin: 0 auto 32px; }
-.conf-details { border: 1px solid var(--border); max-width: 480px; margin: 0 auto 32px; text-align: left; }
-.conf-row { display: flex; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border); font-family: var(--font-condensed); font-size: 14px; color: var(--light); }
-.conf-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+.booking-success { text-align: center; padding: 40px 20px; max-width: 560px; margin: 0 auto; }
+.success-icon { font-size: 56px; margin-bottom: 16px; }
+.booking-success h2 { font-family: var(--font-display); font-size: 32px; color: var(--text); margin-bottom: 16px; }
+.booking-success p { color: var(--light); line-height: 1.6; margin-bottom: 8px; }
 
 @media (max-width: 900px) {
-  .booking-layout { grid-template-columns: 1fr; }
-  .flow-steps { position: static; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .flow-step { border: 1px solid var(--border); padding: 14px; border-bottom: unset; }
-  .step-desc { display: none; }
-  .adv-pick-grid { grid-template-columns: repeat(2, 1fr); }
-  .step1-layout { grid-template-columns: 1fr; }
-  .payment-layout { grid-template-columns: 1fr; }
-  .order-summary { position: static; }
-  .flow-main { padding: 28px 20px; }
-}
-@media (max-width: 600px) {
-  .adv-pick-grid { grid-template-columns: 1fr; }
+  .booking-wizard { grid-template-columns: 1fr; }
+  .wiz-sidebar { display: flex; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border); padding: 20px; gap: 20px; }
+  .wiz-step { border-bottom: none; margin-bottom: 0; padding-bottom: 0; min-width: 180px; }
+  .date-package-layout { grid-template-columns: 1fr; }
   .form-grid { grid-template-columns: 1fr; }
-  .form-field--full { grid-column: span 1; }
-  .payment-methods { grid-template-columns: repeat(2, 1fr); }
-  .flow-steps { grid-template-columns: repeat(2, 1fr); }
 }
 </style>

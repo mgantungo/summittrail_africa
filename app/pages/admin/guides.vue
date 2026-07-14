@@ -1,11 +1,11 @@
-<!--app/pages/admin/analytics.vue-->
+<!--app/pages/admin/guides.vue-->
 <template>
-  <AdminAnalytics />
+  <AdminGuides />
 </template>
 
 <script setup>
-import AdminAnalytics from '~/components/admin/sections/AdminAnalytics.vue'
+import AdminGuides from '~/components/admin/sections/AdminGuides.vue'
 
 definePageMeta({ layout: 'admin' })
-useHead({ title: 'Analytics – Admin – Summit Trail' })
+useHead({ title: 'Guides – Admin – Summit Trail' })
 </script>

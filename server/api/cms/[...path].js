@@ -8,7 +8,7 @@
 //
 // Requires in your Nuxt .env:
    //NUXT_PUBLIC_STRAPI_URL=http://localhost:1337
-   NUXT_PUBLIC_STRAPI_URL="https://cms.summittrail.visiongroup.co.ug";
+   //NUXT_PUBLIC_STRAPI_URL="https://cms.summittrail.visiongroup.co.ug";
 //   STRAPI_API_TOKEN=<a Strapi API token with the right permissions>
 
 export default defineEventHandler(async (event) => {

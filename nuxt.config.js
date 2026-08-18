@@ -100,6 +100,7 @@ export default defineNuxtConfig({
       allowedHosts: [
         'pikanza.newvision.co.ug',
         '.newvision.co.ug',
+        'summittrail.africa',
         'localhost',
         'cms.summittrail.visiongroup.co.ug'
       ]

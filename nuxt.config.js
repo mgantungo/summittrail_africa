@@ -65,7 +65,17 @@ export default defineNuxtConfig({
         { property: 'og:title',       content: 'Summit Trail Limited' },
         { property: 'og:description', content: "Push Beyond Limits – Uganda's gateway to life-defining adventures." },
         { property: 'og:image',       content: '/images/og-cover.jpg' },
+        { property: 'og:image:width',  content: '1200' },
+        { property: 'og:image:height', content: '630' },
+        { property: 'og:image:alt',   content: 'Summit Trail Limited logo' },
         { property: 'og:type',        content: 'website' },
+        { property: 'og:site_name',   content: 'Summit Trail Limited' },
+        // Twitter/X (and several other apps — Slack, Discord — check
+        // these tags before falling back to the og: ones above)
+        { name: 'twitter:card',        content: 'summary_large_image' },
+        { name: 'twitter:title',       content: 'Summit Trail Limited' },
+        { name: 'twitter:description', content: "Push Beyond Limits – Uganda's gateway to life-defining adventures." },
+        { name: 'twitter:image',       content: '/images/og-cover.jpg' },
       ],
       link: [
         { rel: 'icon',     type: 'image/x-icon', href: '/favicon.ico' },

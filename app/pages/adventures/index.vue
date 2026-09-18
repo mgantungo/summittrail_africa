@@ -63,6 +63,16 @@ const filtered = computed(() =>
     : adventures.value
 )
 
+// useAdventuresByDeparture() shares its cache key with HomeFeaturedAdventures
+// on the home page — Nuxt's useFetch caches by key for the whole SPA
+// session, so without this, landing here after the home page (or after any
+// earlier visit) would keep showing whatever was cached then, not what's
+// actually in the CMS now. Matches the same refreshNuxtData() pattern
+// already used on pages/index.vue for the same reason.
+onMounted(() => {
+  refreshNuxtData()
+})
+
 // Two pricing models currently coexist: package-tier (basePrice/currency
 // — e.g. Turkana) and citizenship-tier (eacPrice/eacCurrency, etc. — the
 // newer mountain expeditions). Prefer the citizenship EAC price when set,

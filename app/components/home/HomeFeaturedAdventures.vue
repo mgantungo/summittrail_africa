@@ -29,6 +29,7 @@
         <div class="adv-card-content">
           <span class="badge" :class="`badge-${adv.difficulty}`">{{ adv.difficulty }}</span>
           <div class="adv-card-title">{{ adv.title }}</div>
+          <div v-if="adv.nextDeparture" class="adv-date-flash">📅 {{ formatDate(adv.nextDeparture) }}</div>
           <div class="adv-meta">
             <span>⏱ {{ adv.duration }} {{ adv.durationUnit }}</span>
             <span>👥 Max {{ adv.maxGroup }}</span>
@@ -51,10 +52,20 @@ import { useAnalyticsStore } from '~/stores/analytics'
 
 // Ordered by nextDeparture — nearest-upcoming first — rather than the
 // plain alphabetical useAdventures().
-const { data: adventures } = await useAdventuresByDeparture()
+const { data: adventures, refresh } = await useAdventuresByDeparture()
 
 const analytics     = useAnalyticsStore()
 const activeCategory = ref('')
+
+// This component's fetch key (strapi-adventures-by-departure) is shared
+// with the /adventures listing page's cache, so relying solely on the
+// home page's own refreshNuxtData() to catch staleness here depends on
+// mount-order timing across two separate components. Refreshing directly,
+// on this component's own mount, makes it correct regardless of what else
+// happens to be cached or when the parent page's hook fires.
+onMounted(() => {
+  refresh()
+})
 
 const categories = [
   { value: '',         label: 'All'      },
@@ -76,6 +87,11 @@ const filtered = computed(() =>
 function displayPrice(adv) {
   if (adv.eacPrice != null) return formatMoney(adv.eacPrice, adv.eacCurrency)
   return formatMoney(adv.basePrice, adv.currency)
+}
+
+function formatDate(d) {
+  if (!d) return ''
+  return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function trackView(adv) {
@@ -122,6 +138,11 @@ function trackView(adv) {
   color: var(--white); line-height: 1.1;
 }
 .adv-card--large .adv-card-title { font-size: 36px; }
+.adv-date-flash {
+  font-family: var(--font-condensed); font-size: 13px; font-weight: 700;
+  color: var(--gold); margin-bottom: 6px;
+  animation: pulse 1.5s infinite; /* reuses the global @keyframes pulse in main.css */
+}
 .adv-meta {
   display: flex; gap: 12px; flex-wrap: wrap;
   font-family: var(--font-condensed); font-size: 13px; color: var(--light);

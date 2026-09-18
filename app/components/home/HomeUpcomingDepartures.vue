@@ -32,7 +32,14 @@
 </template>
 
 <script setup>
-const { data: adventures } = await useAdventures()
+const { data: adventures, refresh } = await useAdventures()
+
+// Same reasoning as HomeFeaturedAdventures.vue — refresh on this
+// component's own mount rather than depending solely on the home page's
+// refreshNuxtData() timing.
+onMounted(() => {
+  refresh()
+})
 
 const departures = computed(() => {
   const today = new Date()

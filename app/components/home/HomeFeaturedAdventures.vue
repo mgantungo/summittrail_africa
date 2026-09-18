@@ -29,7 +29,9 @@
         <div class="adv-card-content">
           <span class="badge" :class="`badge-${adv.difficulty}`">{{ adv.difficulty }}</span>
           <div class="adv-card-title">{{ adv.title }}</div>
-          <div v-if="adv.nextDeparture" class="adv-date-flash">📅 {{ formatDate(adv.nextDeparture) }}</div>
+          <div v-if="adv.nextDeparture" class="adv-date-badge">
+            <div class="adv-date-flash">📅 {{ formatDate(adv.nextDeparture) }}</div>
+          </div>
           <div class="adv-meta">
             <span>⏱ {{ adv.duration }} {{ adv.durationUnit }}</span>
             <span>👥 Max {{ adv.maxGroup }}</span>
@@ -138,9 +140,38 @@ function trackView(adv) {
   color: var(--white); line-height: 1.1;
 }
 .adv-card--large .adv-card-title { font-size: 36px; }
+@property --border-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+.adv-date-badge {
+  position: relative;
+  display: inline-block;
+  padding: 3px 4px;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  isolation: isolate;
+}
+.adv-date-badge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px; /* border thickness */
+  background: conic-gradient(from var(--border-angle), transparent 0%, var(--red) 8%, transparent 22%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: spin-border 2.2s linear infinite;
+  z-index: -1;
+}
+@keyframes spin-border {
+  to { --border-angle: 360deg; }
+}
 .adv-date-flash {
   font-family: var(--font-condensed); font-size: 13px; font-weight: 700;
-  color: var(--gold); margin-bottom: 6px;
+  color: var(--gold);
   animation: pulse 1.5s infinite; /* reuses the global @keyframes pulse in main.css */
 }
 .adv-meta {

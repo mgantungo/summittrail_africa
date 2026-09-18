@@ -21,7 +21,7 @@ export default defineNuxtConfig({
   newsletterFromName: process.env.NEWSLETTER_FROM_NAME,
   stripeSecretKey:    process.env.STRIPE_SECRET_KEY,
   strapiApiToken:     process.env.STRAPI_API_TOKEN,   // NEW — server-only CMS token
-  strapiUrlInternal:  process.env.STRAPI_URL_INTERNAL, // NEW — local URL for server-side CMS calls (avoids hairpin NAT)
+  strapiUrlInternal:  process.env.STRAPI_URL_INTERNAL || process.env.NUXT_PUBLIC_STRAPI_URL, // NEW — local URL for server-side CMS calls (avoids hairpin NAT)
 
   public: {
     appName:     process.env.NUXT_PUBLIC_APP_NAME     || 'Summit Trail Limited',
@@ -37,7 +37,8 @@ export default defineNuxtConfig({
 
     // NEW — CMS base URL, public because the browser reads adventures/
     // guides/vehicles/stories/reviews/live-expeditions directly from it
-    strapiUrl: process.env.NUXT_PUBLIC_STRAPI_URL || 'https://cms.summittrail.visiongroup.co.ug'
+    strapiUrl: process.env.NUXT_PUBLIC_STRAPI_URL || 'https://cms.summittrail.visiongroup.co.ug',
+    
   }
 },
 

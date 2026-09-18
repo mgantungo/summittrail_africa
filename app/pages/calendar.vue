@@ -68,7 +68,7 @@
                     <span>⏱ {{ trip.duration }} {{ trip.durationUnit }}</span>
                     <span>👥 {{ trip.spotsLeft }} spots left</span>
                   </div>
-                  <div class="side-trip-price">From ${{ trip.basePrice.toLocaleString() }} → Book</div>
+                  <div class="side-trip-price">From {{ formatMoney(trip.basePrice, trip.currency) }} → Book</div>
                 </div>
               </NuxtLink>
             </div>
@@ -97,7 +97,7 @@
                     {{ dep.spotsLeft }} spots{{ dep.spotsLeft <= 3 ? ' 🔥' : '' }}
                   </div>
                 </div>
-                <div class="upc-price">${{ dep.basePrice }}</div>
+                <div class="upc-price">{{ formatMoney(dep.basePrice, dep.currency) }}</div>
               </NuxtLink>
             </div>
           </div>

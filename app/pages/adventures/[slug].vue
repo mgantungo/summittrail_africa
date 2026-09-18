@@ -3,7 +3,8 @@
   <div v-if="adv" style="padding-top:72px;">
     <!-- HERO -->
     <div class="detail-hero">
-      <img :src="adv.image" :alt="adv.title" class="detail-hero-img" />
+      <img v-if="adv.image" :src="adv.image" :alt="adv.title" class="detail-hero-img" />
+      <div v-else class="detail-hero-img detail-hero-img--placeholder" aria-hidden="true">🏔️</div>
       <div class="detail-hero-overlay" />
       <div class="detail-hero-content">
         <div class="detail-urgency">
@@ -112,7 +113,7 @@
           <div v-if="activeTab === 'Gallery'">
             <div class="gallery-grid">
               <img v-for="(img, i) in adv.gallery" :key="i" :src="img" :alt="`Gallery ${i+1}`" class="gallery-img" loading="lazy" />
-              <img :src="adv.image" alt="Main" class="gallery-img" />
+              <img v-if="adv.image" :src="adv.image" alt="Main" class="gallery-img" />
             </div>
           </div>
         </div>
@@ -123,7 +124,7 @@
         <div class="booking-card">
           <div class="booking-card-header">Book This Expedition</div>
           <div class="booking-card-body">
-            <div class="booking-price">${{ selectedTotal.toLocaleString() }}</div>
+            <div class="booking-price">{{ formatMoney(selectedTotal, adv.currency) }}</div>
             <div class="booking-price-note">Per person · All inclusive</div>
 
             <!-- Date picker -->
@@ -144,7 +145,7 @@
                 @click="booking.package = pkg.id"
               >
                 <div class="pkg-name">{{ pkg.label }}</div>
-                <div class="pkg-price">${{ pkg.price.toLocaleString() }}</div>
+                <div class="pkg-price">{{ formatMoney(pkg.price, adv.currency) }}</div>
               </div>
             </div>
 
@@ -157,14 +158,14 @@
               >
                 <div class="addon-check" :class="{ checked: booking.addons.includes(addon.key) }" />
                 <span class="addon-label">{{ addon.label }}</span>
-                <span class="addon-price">+${{ addon.price }}</span>
+                <span class="addon-price">+{{ formatMoney(addon.price ?? 0, adv.currency) }}</span>
               </div>
             </div>
 
             <!-- Total -->
             <div class="booking-total">
               <span class="booking-total-label">Total</span>
-              <span class="booking-total-val">${{ selectedTotal.toLocaleString() }}</span>
+              <span class="booking-total-val">{{ formatMoney(selectedTotal, adv.currency) }}</span>
             </div>
 
             <NuxtLink
@@ -225,19 +226,22 @@ const tabs = ['Overview', 'Itinerary', 'Requirements', 'Reviews', 'Gallery']
 
 const booking = reactive({ date: '', package: 'essential', addons: [] })
 
+// Prices default to 0 rather than null/undefined — a package field left
+// blank in Strapi should render as $0, not throw and take down SSR
+// (null.toLocaleString() is a fatal error during server rendering).
 const packages = computed(() => adv.value ? [
-  { id: 'essential', label: 'Essential', price: adv.value.basePrice },
-  { id: 'premium', label: 'Premium + Gear', price: adv.value.premiumPrice },
-  { id: 'vip', label: 'VIP Private', price: adv.value.vipPrice },
+  { id: 'essential', label: 'Essential', price: adv.value.basePrice ?? 0 },
+  { id: 'premium', label: 'Premium + Gear', price: adv.value.premiumPrice ?? 0 },
+  { id: 'vip', label: 'VIP Private', price: adv.value.vipPrice ?? 0 },
 ] : [])
 
 const selectedTotal = computed(() => {
   if (!adv.value) return 0
   const pkg = packages.value.find(p => p.id === booking.package)
-  const base = pkg?.price || adv.value.basePrice
+  const base = pkg?.price ?? adv.value.basePrice ?? 0
   const addonsTotal = booking.addons.reduce((sum, key) => {
     const a = (adv.value.addons || []).find(a => a.key === key)
-    return sum + (a?.price || 0)
+    return sum + (a?.price ?? 0)
   }, 0)
   return base + addonsTotal
 })
@@ -250,6 +254,23 @@ function toggleAddon(id) {
   const idx = booking.addons.indexOf(id)
   if (idx === -1) booking.addons.push(id)
   else booking.addons.splice(idx, 1)
+}
+
+// Currency comes from the CMS per-adventure (adv.currency — UGX/USD/KES),
+// not hardcoded. UGX/KES conventionally show as a whole-number code prefix
+// (no decimals — e.g. "UGX 150,000"); USD gets the $ symbol. Falls back to
+// UGX if an adventure somehow has no currency set (shouldn't happen once
+// every entry has been resaved against the new required field).
+const CURRENCY_DISPLAY = {
+  USD: { symbol: '$', position: 'prefix' },
+  UGX: { symbol: 'UGX', position: 'prefix-spaced' },
+  KES: { symbol: 'KES', position: 'prefix-spaced' },
+}
+
+function formatMoney(amount, currency) {
+  const value = (amount ?? 0).toLocaleString()
+  const cfg = CURRENCY_DISPLAY[currency] || CURRENCY_DISPLAY.UGX
+  return cfg.position === 'prefix' ? `${cfg.symbol}${value}` : `${cfg.symbol} ${value}`
 }
 
 function formatDate(d) {
@@ -274,8 +295,9 @@ onMounted(() => {
 <style scoped>
 .detail-hero { height: 560px; position: relative; overflow: hidden; }
 .detail-hero-img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.7); }
+.detail-hero-img--placeholder { display: flex; align-items: center; justify-content: center; font-size: 72px; background: linear-gradient(135deg, var(--panel), var(--charcoal)); }
 .detail-hero-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(10,10,8,0.92) 40%, transparent); }
-.detail-hero-content { position: absolute; top: 0; left: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 var(--px); max-width: 720px; }
+.detail-hero-content { position: absolute; top: 0; left: var(--px); bottom: 0; display: flex; flex-direction: column; justify-content: center; width: min(720px, calc(100% - 2 * var(--px))); }
 .detail-urgency { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
 .urgency-tag { font-family: var(--font-condensed); font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 6px 14px; border: 1px solid; }
 .hot { border-color: var(--red); color: var(--red); background: rgba(192,57,43,0.1); }
@@ -290,13 +312,17 @@ onMounted(() => {
 .qs-label { font-family: var(--font-condensed); font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--gray); margin-top: 2px; }
 
 .detail-body { display: grid; grid-template-columns: 1fr 340px; gap: 40px; align-items: start; }
-.tab-nav { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 0; overflow-x: auto; }
-.tab-btn { font-family: var(--font-condensed); font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 18px 22px; color: var(--gray); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: all 0.2s; }
-.tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); }
+.tab-nav { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 0; overflow-x: auto; }
+.tab-btn { font-family: var(--font-condensed); font-size: 16px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 16px 26px; color: var(--gray); background: none; border: none; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: all 0.2s; }
+.tab-btn:hover { color: var(--light); background: rgba(255,255,255,0.03); }
+.tab-btn.active { color: var(--orange); border-bottom-color: var(--orange); background: rgba(232,98,42,0.1); }
+@media (max-width: 600px) {
+  .tab-btn { font-size: 14px; padding: 14px 18px; }
+}
 .tab-content { padding: 36px 0; }
 
 .highlights-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
-.highlights-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; color: var(--light); padding: 12px; border: 1px solid var(--border); }
+.highlights-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; color: var(--off); line-height: 1.7; padding: 12px; border: 1px solid var(--border); }
 .highlights-list li::before { content: '→'; color: var(--orange); font-weight: 700; flex-shrink: 0; }
 
 .itinerary { display: flex; flex-direction: column; gap: 0; }
@@ -305,12 +331,12 @@ onMounted(() => {
 .itin-num { font-family: var(--font-display); font-size: 48px; color: var(--muted); line-height: 1; }
 .itin-title { font-family: var(--font-condensed); font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
 .itin-meta { display: flex; gap: 16px; font-family: var(--font-condensed); font-size: 12px; color: var(--gray); margin-bottom: 10px; flex-wrap: wrap; }
-.itin-desc { font-size: 14px; font-weight: 300; color: var(--light); line-height: 1.7; }
+.itin-desc { font-size: 15px; font-weight: 400; color: var(--off); line-height: 1.8; }
 
 .req-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
 .req-item { background: var(--panel); border: 1px solid var(--border); padding: 20px; }
 .req-label { font-family: var(--font-condensed); font-size: 13px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--gray); margin-bottom: 8px; }
-.req-val { font-size: 14px; color: var(--light); line-height: 1.6; }
+.req-val { font-size: 15px; color: var(--off); line-height: 1.7; }
 .gear-list { list-style: none; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; }
 .gear-list li { font-size: 14px; color: var(--light); padding: 10px 14px; border: 1px solid var(--border); display: flex; gap: 8px; }
 .gear-list li::before { content: '✓'; color: var(--green-light); font-weight: 700; flex-shrink: 0; }
@@ -320,7 +346,7 @@ onMounted(() => {
 .review-cards { display: flex; flex-direction: column; gap: 16px; }
 .review-card { background: var(--panel); border: 1px solid var(--border); padding: 24px; }
 .review-title { font-family: var(--font-condensed); font-size: 17px; font-weight: 700; color: var(--text); margin: 8px 0; }
-.review-text { font-size: 14px; color: var(--light); line-height: 1.7; font-style: italic; margin-bottom: 16px; }
+.review-text { font-size: 15px; color: var(--off); line-height: 1.8; font-style: italic; font-weight: 300; margin-bottom: 16px; }
 .reviewer { display: flex; align-items: center; gap: 10px; }
 .reviewer-img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
 .reviewer-name { font-family: var(--font-condensed); font-size: 14px; font-weight: 700; color: var(--text); }

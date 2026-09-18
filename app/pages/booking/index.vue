@@ -30,12 +30,13 @@
               <div class="adv-pick-img" :style="{ backgroundImage: `url(${a.image})` }" />
               <div class="adv-pick-body">
                 <div class="adv-pick-title">{{ a.title }}</div>
-                <div class="adv-pick-meta">{{ a.difficulty }} · {{ a.duration }} {{ a.durationUnit }} · from ${{ a.basePrice }}</div>
+                <div class="adv-pick-meta">{{ a.difficulty }} · {{ a.duration }} {{ a.durationUnit }} · from {{ formatMoney(a.basePrice, a.currency) }}</div>
               </div>
             </div>
           </div>
           <div class="wiz-actions">
-            <button class="btn btn-primary" :disabled="!selectedAdventure" @click="step = 2">Continue →</button>
+            <div v-if="showSelectToast" class="select-toast">Please select an adventure to continue</div>
+            <button class="btn btn-primary" @click="attemptContinueFromStep1">Continue →</button>
           </div>
         </div>
 
@@ -85,14 +86,14 @@
               >
                 <div class="package-opt-name">{{ pkg.label }}</div>
                 <div class="package-opt-desc">{{ pkg.desc }}</div>
-                <div class="package-opt-price">${{ pkg.price?.toLocaleString() }}</div>
+                <div class="package-opt-price">{{ formatMoney(pkg.price, selectedAdventure.currency) }}</div>
               </div>
 
               <div class="cal-label" style="margin-top:24px;" v-if="selectedAdventure.addons?.length">Add-ons</div>
               <label class="addon-row" v-for="addon in selectedAdventure.addons" :key="addon.key">
                 <input type="checkbox" :value="addon.key" v-model="form.addons" />
                 <span>{{ addon.label }}</span>
-                <span class="addon-row-price">+${{ addon.price }}</span>
+                <span class="addon-row-price">+{{ formatMoney(addon.price, selectedAdventure.currency) }}</span>
               </label>
             </div>
           </div>
@@ -134,7 +135,7 @@
               <div class="review-row"><span>Participants</span><strong>{{ form.participants }}</strong></div>
               <div class="review-row"><span>Name</span><strong>{{ form.name }}</strong></div>
               <div class="review-row"><span>Email</span><strong>{{ form.email }}</strong></div>
-              <div class="review-total"><span>Total</span><strong>${{ total.toLocaleString() }}</strong></div>
+              <div class="review-total"><span>Total</span><strong>{{ formatMoney(total, selectedAdventure.currency) }}</strong></div>
             </div>
             <p class="summary-note">No payment is taken on this page — you'll receive a confirmation email with payment instructions.</p>
             <div v-if="error" class="error-msg">{{ error }}</div>
@@ -180,7 +181,23 @@ function selectAdventure(a) {
   form.departureDate = ''
   form.package = 'essential'
   form.addons = []
+  jumpCalendarToFirstDeparture(a)
 }
+
+const showSelectToast = ref(false)
+let toastTimer = null
+
+function attemptContinueFromStep1() {
+  if (!selectedAdventure.value) {
+    showSelectToast.value = true
+    clearTimeout(toastTimer)
+    toastTimer = setTimeout(() => { showSelectToast.value = false }, 2500)
+    return
+  }
+  step.value = 2
+}
+
+onBeforeUnmount(() => clearTimeout(toastTimer))
 
 const form = reactive({
   name: '', email: '', phone: '', country: '',
@@ -201,6 +218,26 @@ function prevMonth() {
 }
 function nextMonth() {
   if (viewMonth.value === 11) { viewMonth.value = 0; viewYear.value++ } else viewMonth.value++
+}
+
+// Prefer the earliest departure that's still upcoming; if every scheduled
+// departure for this adventure is already in the past, fall back to the
+// earliest one anyway so the calendar still lands somewhere relevant
+// rather than staying wherever it happened to be left.
+function jumpCalendarToFirstDeparture(a) {
+  const departures = a?.departures || []
+  if (!departures.length) return
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const sorted = [...departures].sort((x, y) => new Date(x.date) - new Date(y.date))
+  const target = sorted.find(d => new Date(d.date) >= today) || sorted[0]
+  if (!target) return
+
+  const targetDate = new Date(target.date)
+  viewYear.value = targetDate.getFullYear()
+  viewMonth.value = targetDate.getMonth()
 }
 
 const calDays = computed(() => {
@@ -283,6 +320,15 @@ async function submitBooking() {
     submitting.value = false
   }
 }
+
+// If there's only one adventure on offer, there's no real choice to make
+// at step 1 — auto-select it and skip straight to date & package. Placed
+// last so every ref/function it touches (selectAdventure, step, form,
+// the calendar refs it jumps) is already initialized by the time this runs.
+if (adventures.value?.length === 1) {
+  selectAdventure(adventures.value[0])
+  step.value = 2
+}
 </script>
 
 <style scoped>
@@ -301,7 +347,24 @@ async function submitBooking() {
 .wiz-step-sub { font-size: 12px; color: var(--gray); margin-top: 2px; }
 .wiz-main { padding: 40px; }
 .wiz-h1 { font-family: var(--font-display); font-size: 32px; color: var(--text); margin-bottom: 28px; }
-.wiz-actions { display: flex; gap: 14px; margin-top: 28px; }
+.wiz-actions { display: flex; gap: 14px; margin-top: 28px; position: relative; }
+
+.select-toast {
+  position: absolute; bottom: calc(100% + 10px); left: 0;
+  background: var(--charcoal); border: 1px solid var(--red); color: var(--off);
+  font-family: var(--font-condensed); font-size: 13px; font-weight: 600;
+  padding: 10px 16px; max-width: 260px; white-space: normal; line-height: 1.4;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  animation: toast-in 0.2s ease;
+}
+.select-toast::after {
+  content: ''; position: absolute; top: 100%; left: 24px;
+  border: 6px solid transparent; border-top-color: var(--red);
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
 .adv-pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
 .adv-pick-card { border: 1px solid var(--border); cursor: pointer; border-radius: 4px; overflow: hidden; transition: border-color 0.2s; }

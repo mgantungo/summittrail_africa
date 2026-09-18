@@ -19,7 +19,7 @@
         <span class="dep-name">{{ dep.title }}</span>
         <span class="dep-date">{{ fmt(dep.date) }}</span>
         <span><span class="badge" :class="`badge-${dep.difficulty}`">{{ dep.difficulty }}</span></span>
-        <span class="dep-price">${{ dep.basePrice.toLocaleString() }}</span>
+        <span class="dep-price">{{ displayPrice(dep) }}</span>
         <span class="dep-spots" :class="{ 'spots-low': dep.spots <= 3 }">
           {{ dep.spots }} left{{ dep.spots <= 3 ? ' 🔥' : '' }}
         </span>
@@ -35,9 +35,18 @@
 const { data: adventures } = await useAdventures()
 
 const departures = computed(() => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
   const deps = []
   ;(adventures.value || []).forEach(adv => {
     ;(adv.departures || []).forEach(dep => {
+      // Only genuinely upcoming, bookable dates belong in an "Upcoming
+      // Departures" widget — a past date sorting earliest-first was
+      // showing up ahead of real upcoming ones purely because it's
+      // calendar-earlier, with no regard for whether it had already passed.
+      if (new Date(dep.date) < today) return
+      if (dep.status === 'closed') return
       deps.push({ ...adv, date: dep.date, spots: dep.spotsLeft, status: dep.status })
     })
   })
@@ -46,6 +55,14 @@ const departures = computed(() => {
 
 const fmt = (d) =>
   new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+
+// Two pricing models coexist: package-tier (basePrice/currency — e.g.
+// Turkana) and citizenship-tier (eacPrice/eacCurrency — the newer
+// mountain expeditions). Prefer the citizenship EAC price when set.
+function displayPrice(adv) {
+  if (adv.eacPrice != null) return formatMoney(adv.eacPrice, adv.eacCurrency)
+  return formatMoney(adv.basePrice, adv.currency)
+}
 </script>
 
 <style scoped>

@@ -34,7 +34,7 @@
             <span>👥 Max {{ adv.maxGroup }}</span>
             <span>{{ adv.terrain }}</span>
           </div>
-          <div class="adv-price">From ${{ adv.basePrice.toLocaleString() }}</div>
+          <div class="adv-price">From {{ displayPrice(adv) }}</div>
         </div>
         <div class="adv-hover-cta">View Details →</div>
       </NuxtLink>
@@ -49,7 +49,9 @@
 <script setup>
 import { useAnalyticsStore } from '~/stores/analytics'
 
-const { data: adventures } = await useAdventures()
+// Ordered by nextDeparture — nearest-upcoming first — rather than the
+// plain alphabetical useAdventures().
+const { data: adventures } = await useAdventuresByDeparture()
 
 const analytics     = useAnalyticsStore()
 const activeCategory = ref('')
@@ -67,6 +69,14 @@ const filtered = computed(() =>
     ? adventures.value.filter(a => a.category === activeCategory.value)
     : adventures.value
 )
+
+// Two pricing models coexist: package-tier (basePrice/currency — e.g.
+// Turkana) and citizenship-tier (eacPrice/eacCurrency — the newer
+// mountain expeditions). Prefer the citizenship EAC price when set.
+function displayPrice(adv) {
+  if (adv.eacPrice != null) return formatMoney(adv.eacPrice, adv.eacCurrency)
+  return formatMoney(adv.basePrice, adv.currency)
+}
 
 function trackView(adv) {
   analytics.trackEvent('adventure', 'view', adv.id)

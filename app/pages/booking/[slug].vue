@@ -47,7 +47,7 @@
             <div class="package-opts">
               <div v-for="pkg in packages" :key="pkg.id" class="package-opt" :class="{ selected: form.package === pkg.id }" @click="form.package = pkg.id">
                 <div class="package-opt-name">{{ pkg.label }}</div>
-                <div class="package-opt-price">${{ pkg.price }}</div>
+                <div class="package-opt-price">{{ formatMoney(pkg.price, adv.currency) }}</div>
               </div>
             </div>
           </div>
@@ -58,7 +58,7 @@
               <label class="addon-row" v-for="addon in adv.addons" :key="addon.key">
                 <input type="checkbox" :value="addon.key" v-model="form.addons" />
                 <span>{{ addon.label }}</span>
-                <span class="addon-row-price">+${{ addon.price }}</span>
+                <span class="addon-row-price">+{{ formatMoney(addon.price, adv.currency) }}</span>
               </label>
             </div>
           </div>
@@ -78,7 +78,7 @@
               <div class="summary-line"><span>Package</span><strong>{{ selectedPackageLabel }}</strong></div>
               <div class="summary-line"><span>Participants</span><strong>{{ form.participants }}</strong></div>
               <div class="summary-line"><span>Departure</span><strong>{{ form.departureDate ? fmt(form.departureDate) : '—' }}</strong></div>
-              <div class="summary-total"><span>Total</span><strong>${{ total.toLocaleString() }}</strong></div>
+              <div class="summary-total"><span>Total</span><strong>{{ formatMoney(total, adv.currency) }}</strong></div>
               <button class="btn btn-primary btn-full" :disabled="!canSubmit || submitting" @click="submitBooking">
                 {{ submitting ? 'Submitting…' : 'Confirm Booking' }}
               </button>

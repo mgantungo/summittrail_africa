@@ -32,7 +32,7 @@
               <span>📍 {{ adv.location || adv.terrain }}</span>
               <span>{{ adv.duration }} {{ adv.durationUnit }}</span>
             </div>
-            <div class="adv-card-price">From ${{ Number(adv.basePrice || 0).toLocaleString() }}</div>
+            <div class="adv-card-price">From {{ displayPrice(adv) }}</div>
           </div>
         </NuxtLink>
       </div>
@@ -43,7 +43,10 @@
 <script setup>
 useHead({ title: 'All Adventures – Summit Trail' })
 
-const { data: adventures, pending } = await useAdventures()
+// Ordered by nextDeparture — nearest-upcoming first, past ones last —
+// via the custom /api/adventures/by-departure endpoint, rather than the
+// plain alphabetical useAdventures().
+const { data: adventures, pending } = await useAdventuresByDeparture()
 
 const activeCategory = ref('')
 const categories = [
@@ -59,6 +62,15 @@ const filtered = computed(() =>
     ? adventures.value.filter(a => a.category === activeCategory.value)
     : adventures.value
 )
+
+// Two pricing models currently coexist: package-tier (basePrice/currency
+// — e.g. Turkana) and citizenship-tier (eacPrice/eacCurrency, etc. — the
+// newer mountain expeditions). Prefer the citizenship EAC price when set,
+// otherwise fall back to the package-tier basePrice.
+function displayPrice(adv) {
+  if (adv.eacPrice != null) return formatMoney(adv.eacPrice, adv.eacCurrency)
+  return formatMoney(adv.basePrice, adv.currency)
+}
 </script>
 
 <style scoped>

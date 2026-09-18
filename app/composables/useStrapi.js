@@ -46,24 +46,48 @@ export function useAdventures() {
   })
 }
 
-export function useAdventure(slug) {
-  return useFetch(() => `${strapiBase()}/api/adventures`, {
-    key: () => `strapi-adventure-${unref(slug)}`,
-    query: () => ({ 'filters[slug][$eqi]': unref(slug), populate: '*' }),
-    transform: (res) => {
-      const match = res?.data?.[0] ?? null
-      if (!match) {
-        console.warn(
-          `[useAdventure] No adventure found for slug "${unref(slug)}". ` +
-          `Checked ${res?.meta?.pagination?.total ?? 0} total matches. ` +
-          `If this adventure exists in Strapi, confirm it's PUBLISHED ` +
-          `(not just saved as a draft) — draft entries don't show via the public API.`
-        )
-      }
-      return match
-    },
-    watch: [() => unref(slug)],
+// Published adventures ordered by nextDeparture — soonest-upcoming first,
+// then further-future, then past ones last. The ordering itself happens
+// server-side (see the adventure.byDeparture controller action), not by
+// re-sorting the plain useAdventures() list client-side, so it can't be
+// bypassed and stays correct regardless of pagination.
+export function useAdventuresByDeparture() {
+  return useFetch(() => `${strapiBase()}/api/adventures/by-departure`, {
+    key: 'strapi-adventures-by-departure',
+    query: { populate: '*' },
+    transform: unwrapList,
+    default: () => [],
   })
+}
+
+// NOTE: previously built the query as an object —
+//   query: () => ({ 'filters[slug][$eqi]': unref(slug), populate: '*' })
+// — which produced a response missing itinerary/requirements/addons/
+// departures/guides (confirmed via a transform-level console.log showing
+// raw Strapi data with those keys entirely absent), even though the exact
+// same filter+populate combo worked when typed directly into the browser.
+// Building the query string by hand, the same way the working manual URL
+// was written, avoids however ofetch/useFetch was serializing that object.
+export function useAdventure(slug) {
+  return useFetch(
+    () => `${strapiBase()}/api/adventures?filters[slug][$eqi]=${encodeURIComponent(unref(slug))}&populate=*`,
+    {
+      key: () => `strapi-adventure-${unref(slug)}`,
+      transform: (res) => {
+        const match = res?.data?.[0] ?? null
+        if (!match) {
+          console.warn(
+            `[useAdventure] No adventure found for slug "${unref(slug)}". ` +
+            `Checked ${res?.meta?.pagination?.total ?? 0} total matches. ` +
+            `If this adventure exists in Strapi, confirm it's PUBLISHED ` +
+            `(not just saved as a draft) — draft entries don't show via the public API.`
+          )
+        }
+        return match
+      },
+      watch: [() => unref(slug)],
+    }
+  )
 }
 
 // ── Guides ───────────────────────────────────────────────────────────────
@@ -97,18 +121,20 @@ export function useStories() {
 }
 
 export function useStory(slug) {
-  return useFetch(() => `${strapiBase()}/api/stories`, {
-    key: () => `strapi-story-${unref(slug)}`,
-    query: () => ({ 'filters[slug][$eqi]': unref(slug), populate: '*' }),
-    transform: (res) => {
-      const match = res?.data?.[0] ?? null
-      if (!match) {
-        console.warn(`[useStory] No story found for slug "${unref(slug)}" — confirm it's published, not just a draft.`)
-      }
-      return match
-    },
-    watch: [() => unref(slug)],
-  })
+  return useFetch(
+    () => `${strapiBase()}/api/stories?filters[slug][$eqi]=${encodeURIComponent(unref(slug))}&populate=*`,
+    {
+      key: () => `strapi-story-${unref(slug)}`,
+      transform: (res) => {
+        const match = res?.data?.[0] ?? null
+        if (!match) {
+          console.warn(`[useStory] No story found for slug "${unref(slug)}" — confirm it's published, not just a draft.`)
+        }
+        return match
+      },
+      watch: [() => unref(slug)],
+    }
+  )
 }
 
 // ── Reviews ──────────────────────────────────────────────────────────────
@@ -212,4 +238,21 @@ export function useDownloadResources() {
 export function shortTitle(title) {
   if (!title) return ''
   return title.split(' ').slice(0, 3).join(' ') + '…'
+}
+
+// Currency comes from the CMS per-adventure (adventure.currency — UGX/USD/
+// KES), never hardcoded. UGX/KES conventionally show as a code prefix
+// (e.g. "UGX 150,000"); USD gets the $ symbol. Falls back to UGX if an
+// adventure has no currency set (shouldn't happen once every entry has
+// been resaved against the schema's new required field with its default).
+const CURRENCY_DISPLAY = {
+  USD: { symbol: '$', position: 'prefix' },
+  UGX: { symbol: 'UGX', position: 'prefix-spaced' },
+  KES: { symbol: 'KES', position: 'prefix-spaced' },
+}
+
+export function formatMoney(amount, currency) {
+  const value = (amount ?? 0).toLocaleString()
+  const cfg = CURRENCY_DISPLAY[currency] || CURRENCY_DISPLAY.UGX
+  return cfg.position === 'prefix' ? `${cfg.symbol}${value}` : `${cfg.symbol} ${value}`
 }

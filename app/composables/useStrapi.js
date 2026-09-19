@@ -14,7 +14,19 @@ const FALLBACK_STRAPI_URL = 'https://cms.summittrail.visiongroup.co.ug'
 
 let warned = false
 function strapiBase() {
-  const url = useRuntimeConfig().public.strapiUrl
+  const cfg = useRuntimeConfig()
+
+  // SSR (direct URL visits, hard refreshes, shared links) runs on the
+  // Node server and must use the internal URL to dodge hairpin NAT —
+  // a server can't always reach its own public domain from inside its
+  // own network, even though external clients reach it fine. Client-side
+  // navigation runs in the browser and uses the public URL. This split
+  // was lost in a later rewrite of this file (the populate/query-string
+  // fix below) — restoring it here.
+  const url = process.server
+    ? (cfg.public.strapiUrlInternal || cfg.public.strapiUrl)
+    : cfg.public.strapiUrl
+
   if (!url) {
     if (!warned) {
       console.warn(

@@ -13,6 +13,7 @@ export const useProfileStore = defineStore('profile', {
     pushSubscription: null,
     newsletterDismissed: false,
     newsletterSubscribed: false,
+    installPromptDismissed: false,
     cookiesAccepted: false,
     preferences: {
       categories: [],
@@ -107,6 +108,12 @@ export const useProfileStore = defineStore('profile', {
       this._save()
     },
 
+    // ── PWA install prompt ──────────────────────────
+    dismissInstallPrompt() {
+      this.installPromptDismissed = true
+      this._save()
+    },
+
     // ── Cookies ─────────────────────────────────────
     acceptCookies() {
       this.cookiesAccepted = true
@@ -128,6 +135,7 @@ export const useProfileStore = defineStore('profile', {
           pushSubscription: this.pushSubscription,
           newsletterDismissed: this.newsletterDismissed,
           newsletterSubscribed: this.newsletterSubscribed,
+          installPromptDismissed: this.installPromptDismissed,
           cookiesAccepted: this.cookiesAccepted,
           preferences: this.preferences,
         }))

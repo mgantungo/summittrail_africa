@@ -10,6 +10,7 @@
     <!-- Global overlays — ClientOnly prevents SSR crashes -->
     <ClientOnly>
       <NotificationPrompt />
+      <InstallPrompt />
       <NewsletterModal />
       <CookieBanner />
     </ClientOnly>
@@ -19,8 +20,10 @@
 <script setup>
 import AppNav from '~/components/layout/AppNav.vue'
 import AppFooter from '~/components/layout/AppFooter.vue'
-// Overlays live here so they inherit the layout context
-// and are guarded from SSR via ClientOnly
+// Overlays live here so they inherit the layout context and are guarded
+// from SSR via ClientOnly. NotificationPrompt/InstallPrompt/NewsletterModal/
+// CookieBanner all live at components/ root and are picked up by Nuxt's
+// auto-import, same as their existing siblings here — no import needed.
 </script>
 
 <style>

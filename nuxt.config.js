@@ -56,6 +56,7 @@ export default defineNuxtConfig({
   // ── App head ─────────────────────────────────────────
   app: {
     head: {
+      htmlAttrs: { lang: 'en' },
       title: 'Summit Trail Limited – Push Beyond Limits',
       meta: [
         { charset: 'utf-8' },
@@ -79,6 +80,7 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon',     type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' }, // needs a dedicated 180×180px file — see note below
         { rel: 'manifest', href: '/manifest.json' },
         {
           rel:  'stylesheet',

@@ -14,6 +14,7 @@
         </div>
         <h1 class="detail-title">{{ adv.title }}</h1>
         <div class="detail-tagline">{{ adv.tagline }}</div>
+        <ShareMenu :title="adv.title" :text="adv.tagline" class="detail-share" />
         <div class="detail-quick-stats">
           <div class="qs-item"><div class="qs-value">{{ adv.duration }}{{ (adv.durationUnit || 'days').charAt(0).toUpperCase() }}</div><div class="qs-label">Duration</div></div>
           <div class="qs-item"><div class="qs-value">{{ '★'.repeat(adv.difficultyLevel) }}</div><div class="qs-label">Difficulty</div></div>
@@ -211,6 +212,7 @@
 <script setup>
 import { useProfileStore } from '~/stores/profile'
 import { useAnalyticsStore } from '~/stores/analytics'
+import ShareMenu from '~/components/shared/ShareMenu.vue'
 
 const route = useRoute()
 const profile = useProfileStore()
@@ -219,7 +221,29 @@ const analytics = useAnalyticsStore()
 const { data: adv } = await useAdventure(computed(() => route.params.slug))
 const { data: adventureReviews } = await useReviews(computed(() => route.params.slug))
 
-useHead(() => ({ title: adv.value ? `${adv.value.title} – Summit Trail` : 'Adventure' }))
+// Per-page SEO — overrides the static site-wide defaults in
+// nuxt.config.js with this specific adventure's own title/tagline/image,
+// so sharing this URL (via the ShareMenu above) shows a correct,
+// adventure-specific preview on WhatsApp/Facebook/X rather than the
+// generic homepage card. Falls back to the site's og-cover.jpg for any
+// adventure that has no image of its own yet (several of the newer
+// mountain expeditions don't) — a real photo beats none, and the
+// og-cover logo card beats a broken/blank preview image.
+const requestURL = useRequestURL()
+
+useSeoMeta({
+  title: () => adv.value ? `${adv.value.title} – Summit Trail` : 'Adventure',
+  description: () => adv.value?.tagline || "Push Beyond Limits – Uganda's gateway to life-defining adventures.",
+  ogTitle: () => adv.value ? `${adv.value.title} – Summit Trail` : 'Summit Trail Limited',
+  ogDescription: () => adv.value?.tagline || "Push Beyond Limits – Uganda's gateway to life-defining adventures.",
+  ogImage: () => adv.value?.image || '/images/og-cover.jpg',
+  ogUrl: () => requestURL.href,
+  ogType: 'website',
+  twitterCard: 'summary_large_image',
+  twitterTitle: () => adv.value ? `${adv.value.title} – Summit Trail` : 'Summit Trail Limited',
+  twitterDescription: () => adv.value?.tagline || "Push Beyond Limits – Uganda's gateway to life-defining adventures.",
+  twitterImage: () => adv.value?.image || '/images/og-cover.jpg',
+})
 
 const activeTab = ref('Overview')
 const tabs = ['Overview', 'Itinerary', 'Requirements', 'Reviews', 'Gallery']
@@ -304,7 +328,8 @@ onMounted(() => {
 .timer { border-color: var(--gold); color: var(--gold); background: rgba(212,168,67,0.1); }
 .rate { border-color: var(--green-light); color: var(--green-light); background: rgba(77,140,77,0.1); }
 .detail-title { font-family: var(--font-display); font-size: 64px; line-height: 0.95; margin-bottom: 16px; }
-.detail-tagline { font-size: 16px; font-style: italic; font-weight: 300; color: var(--off); border-left: 3px solid var(--orange); padding-left: 14px; margin-bottom: 28px; }
+.detail-tagline { font-size: 16px; font-style: italic; font-weight: 300; color: var(--off); border-left: 3px solid var(--orange); padding-left: 14px; margin-bottom: 20px; }
+.detail-share { margin-bottom: 28px; }
 .detail-quick-stats { display: grid; grid-template-columns: repeat(4, auto); gap: 0; border: 1px solid var(--border); background: rgba(10,10,8,0.7); width: fit-content; }
 .qs-item { padding: 14px 20px; border-right: 1px solid var(--border); text-align: center; }
 .qs-item:last-child { border-right: none; }

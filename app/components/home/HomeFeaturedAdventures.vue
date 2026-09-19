@@ -16,16 +16,28 @@
     </div>
 
     <div class="adventures-grid">
-      <NuxtLink
+      <div
         v-for="(adv, i) in filtered.slice(0, 4)"
         :key="adv.id"
-        :to="`/adventures/${adv.slug}`"
         class="adv-card"
         :class="{ 'adv-card--large': i === 0 }"
-        @click="trackView(adv)"
       >
-        <img :src="adv.image" :alt="adv.title" class="adv-card-img" loading="lazy" />
-        <div class="adv-card-overlay" />
+        <div class="adv-card-media">
+          <img :src="adv.image" :alt="adv.title" class="adv-card-img" loading="lazy" />
+          <div class="adv-card-overlay" />
+        </div>
+
+        <!-- Invisible full-cover link — handles the card's own click/nav.
+             Kept as a sibling (not a wrapper) so ShareMenu's <a> tags
+             below never end up nested inside another <a>, which is
+             invalid HTML and behaves unpredictably across browsers. -->
+        <NuxtLink
+          :to="`/adventures/${adv.slug}`"
+          class="adv-card-hitbox"
+          :aria-label="`View ${adv.title}`"
+          @click="trackView(adv)"
+        />
+
         <div class="adv-card-content">
           <span class="badge" :class="`badge-${adv.difficulty}`">{{ adv.difficulty }}</span>
           <div class="adv-card-title">{{ adv.title }}</div>
@@ -40,7 +52,15 @@
           <div class="adv-price">From {{ displayPrice(adv) }}</div>
         </div>
         <div class="adv-hover-cta">View Details →</div>
-      </NuxtLink>
+
+        <ShareMenu
+          :title="adv.title"
+          :text="adv.tagline"
+          :url="`${requestURL.origin}/adventures/${adv.slug}`"
+          compact
+          class="adv-card-share"
+        />
+      </div>
     </div>
 
     <div class="feat-cta">
@@ -51,6 +71,9 @@
 
 <script setup>
 import { useAnalyticsStore } from '~/stores/analytics'
+import ShareMenu from '~/components/shared/ShareMenu.vue'
+
+const requestURL = useRequestURL()
 
 // Ordered by nextDeparture — nearest-upcoming first — rather than the
 // plain alphabetical useAdventures().
@@ -118,10 +141,16 @@ function trackView(adv) {
   gap: 2px;
 }
 .adv-card {
-  position: relative; overflow: hidden; display: block; cursor: pointer;
+  position: relative; display: block; cursor: pointer;
   grid-row: span 1;
 }
 .adv-card--large { grid-row: span 2; }
+
+/* overflow:hidden lives here now, not on .adv-card itself — clips the
+   image's hover-zoom without also clipping the share dropdown, which
+   needs to be able to render outside the card's own bounds. */
+.adv-card-media { position: absolute; inset: 0; overflow: hidden; }
+
 .adv-card-img {
   width: 100%; height: 100%; object-fit: cover;
   transition: transform 0.5s ease;
@@ -131,6 +160,14 @@ function trackView(adv) {
   position: absolute; inset: 0;
   background: linear-gradient(to top, rgba(10,10,8,0.92) 0%, rgba(10,10,8,0.2) 60%, transparent 100%);
 }
+
+/* Invisible full-cover link handling the card's own navigation — sits
+   below the share button (z-index) so the share button's own clicks
+   still register instead of triggering card navigation underneath it. */
+.adv-card-hitbox { position: absolute; inset: 0; z-index: 1; }
+
+.adv-card-share { position: absolute; top: 12px; right: 12px; z-index: 2; }
+
 .adv-card-content {
   position: absolute; bottom: 0; left: 0; right: 0;
   padding: 24px; display: flex; flex-direction: column; gap: 8px;

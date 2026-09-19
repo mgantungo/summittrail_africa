@@ -202,6 +202,11 @@
     </div>
   </div>
 
+  <div v-else-if="retrying" class="not-found section" style="padding-top:120px; text-align:center;">
+    <div style="font-size:56px; margin-bottom:20px;">🏔️</div>
+    <h2 class="section-title">Loading…</h2>
+  </div>
+
   <div v-else class="not-found section" style="padding-top:120px; text-align:center;">
     <div style="font-size:56px; margin-bottom:20px;">🏔️</div>
     <h2 class="section-title">Adventure Not Found</h2>
@@ -218,7 +223,7 @@ const route = useRoute()
 const profile = useProfileStore()
 const analytics = useAnalyticsStore()
 
-const { data: adv } = await useAdventure(computed(() => route.params.slug))
+const { data: adv, refresh: refreshAdv } = await useAdventure(computed(() => route.params.slug))
 const { data: adventureReviews } = await useReviews(computed(() => route.params.slug))
 
 // Per-page SEO — overrides the static site-wide defaults in
@@ -308,7 +313,21 @@ function trackBook() {
   analytics.trackEvent('booking', 'initiate', adv.value.slug, selectedTotal.value)
 }
 
-onMounted(() => {
+const retrying = ref(false)
+
+onMounted(async () => {
+  // If SSR came back with nothing, retry once client-side after
+  // hydration — the browser reaches Strapi over a different network path
+  // than the server does, so this can recover from a server-side-only
+  // connectivity failure. `retrying` drives a loading state in the
+  // template so this doesn't flash "Adventure Not Found" first.
+  if (!adv.value) {
+    retrying.value = true
+    console.warn(`[slug].vue: adv was empty after SSR for "${route.params.slug}" — retrying client-side.`)
+    await refreshAdv()
+    retrying.value = false
+  }
+
   if (adv.value) {
     profile.addRecentlyViewed(adv.value.slug)
     analytics.trackEvent('adventure', 'detail_view', adv.value.slug)

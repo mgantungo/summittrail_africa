@@ -88,7 +88,7 @@
           </div>
 
           <!-- Key present but this expedition has no GPS points in the CMS -->
-          <div v-else-if="mapsReady && !geoRoute.length" class="map-fallback map-fallback-soft">
+          <div v-else-if="mapsReady && !geoRoute.length && !lastFix" class="map-fallback map-fallback-soft">
             <div class="mf-icon">📡</div>
             <div class="mf-text">No GPS route posted yet</div>
             <div class="mf-sub">Waypoints appear once the field team adds them to this expedition.</div>
@@ -135,7 +135,8 @@
             <div class="section-label" style="margin-bottom:0;">Latest Field Updates</div>
             <span class="ht-feed-count">
               {{ active.feed.length }} update{{ active.feed.length === 1 ? '' : 's' }}
-              <template v-if="lastSynced"> · synced {{ lastSynced }}</template>
+              <template v-if="active.lastFieldUpdateAt"> · last from the field {{ ago(active.lastFieldUpdateAt) }}</template>
+              <template v-else-if="lastSynced"> · synced {{ lastSynced }}</template>
             </span>
           </div>
           <div v-if="!active.feed.length" class="ht-feed-empty">No field updates posted yet.</div>
@@ -204,14 +205,21 @@
           <div class="ht-follow-sub">Get notified at each checkpoint and when updates are posted.</div>
           <button
             class="btn btn-full"
-            :class="following ? 'btn-outline' : 'btn-primary'"
-            @click="following = !following"
+            :class="isFollowing ? 'btn-outline' : 'btn-primary'"
+            :disabled="followBusy"
+            @click="toggleFollow"
             style="margin-bottom:10px;"
           >
-            {{ following
-              ? `❤️ Following — ${active.followers + 1} followers`
-              : `🔔 Follow Live · ${active.followers} following` }}
+            {{ followBusy ? 'Please wait…'
+              : isFollowing
+                ? `❤️ Following · ${active.followers} following`
+                : `🔔 Follow Live · ${active.followers} following` }}
           </button>
+          <form v-if="showEmailFollow && !isFollowing" class="ht-follow-email" @submit.prevent="followByEmail">
+            <input v-model="followEmail" type="email" required class="input" placeholder="Your email for updates" autocomplete="email" />
+            <button type="submit" class="btn btn-primary btn-sm" :disabled="followBusy">Follow</button>
+          </form>
+          <div v-if="followMsg" class="ht-follow-msg">{{ followMsg }}</div>
           <NuxtLink v-if="active.adventureSlug" :to="`/adventures/${active.adventureSlug}`" class="btn btn-ghost btn-full btn-sm" style="margin-bottom:8px;">
             View This Trail →
           </NuxtLink>
@@ -276,7 +284,6 @@ watch(liveExpeditions, (list) => {
   }
 })
 
-const following     = ref(false)
 const mapView       = ref('satellite') // 'map' | 'satellite' | 'street'
 const mapEl         = ref(null)
 const mapsReady     = ref(false)
@@ -326,9 +333,15 @@ const activeStats = computed(() => {
 
 const visibleFeed = computed(() => isPage.value ? active.value.feed : active.value.feed.slice(0, 3))
 
-const geoRoute = computed(() => active.value?.geoRoute || [])
+// Route = checkpoints with coordinates (see normalizeExpedition)
+const geoRoute = computed(() => active.value?.route || [])
+const lastFix  = computed(() => active.value?.lastFix || null)
+// Where the team is: the guide's latest GPS fix, else the current checkpoint
 const currentGeoPoint = computed(() =>
-  geoRoute.value.find(p => p.status === 'current') || geoRoute.value[geoRoute.value.length - 1]
+  lastFix.value ||
+  geoRoute.value.find(p => p.status === 'current') ||
+  geoRoute.value.filter(p => p.status === 'done').pop() ||
+  geoRoute.value[0]
 )
 
 // Relative time from the CMS postedAt timestamp. `now` ticks every minute
@@ -414,11 +427,41 @@ function clearMapObjects() {
   markers = []
 }
 
+// "Last reported position" from the guide's phone GPS
+function drawLastFix() {
+  const fix = lastFix.value
+  if (!gmap || !fix) return
+  const m = new google.maps.Marker({
+    position: { lat: fix.lat, lng: fix.lng },
+    map: gmap,
+    zIndex: 20,
+    title: 'Last reported position',
+    icon: {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 7,
+      fillColor: '#f5f3ec',
+      fillOpacity: 1,
+      strokeColor: '#e8622a',
+      strokeWeight: 4,
+    },
+  })
+  const box = document.createElement('div')
+  box.style.cssText = 'font-family:sans-serif;font-size:13px;color:#0a0a08;padding:4px 8px;'
+  box.textContent = `Last reported position${fix.postedAt ? ' · ' + ago(fix.postedAt) : ''}`
+  const iw = new google.maps.InfoWindow({ content: box })
+  m.addListener('click', () => iw.open(gmap, m))
+  markers.push(m)
+}
+
 function drawRoute({ fit = false } = {}) {
   if (!gmap) return
   clearMapObjects()
   const pts = geoRoute.value
-  if (!pts.length) return
+  drawLastFix()
+  if (!pts.length) {
+    if (fit && lastFix.value) { gmap.setCenter(lastFix.value); gmap.setZoom(12) }
+    return
+  }
 
   let currentIdx = pts.findIndex(p => p.status === 'current')
   if (currentIdx < 0) currentIdx = pts.map(p => p.status).lastIndexOf('done')
@@ -540,14 +583,101 @@ watch(activeTrackId, async () => {
 
 // Same expedition, new field data from a poll → redraw without moving the
 // viewer's camera
-watch(() => JSON.stringify(geoRoute.value), (next, prev) => {
+watch(() => JSON.stringify([geoRoute.value, lastFix.value]), (next, prev) => {
   if (!gmap || next === prev) return
-  drawRoute({ fit: !prev || prev === '[]' })
+  drawRoute({ fit: !prev || prev === '[[],null]' })
 })
 
 // The map div only exists while an expedition is shown — if expeditions
 // appear after mount (e.g. on a poll), initialise then.
 watch(mapEl, (el) => { if (el && window.google?.maps) initMap() })
+
+// ── Follow ────────────────────────────────────────────────────────────────
+// Stored in the CMS (expedition-follow) via /api/tracking/follow. Push when
+// the browser supports it and VAPID is configured, otherwise email. This
+// browser remembers what it follows so the button can unfollow.
+const FOLLOW_KEY = 'st-follows'
+const followed = ref({})            // { [expeditionKey]: { endpoint } | { email } }
+const followBusy = ref(false)
+const followMsg = ref('')
+const showEmailFollow = ref(false)
+const followEmail = ref('')
+const isFollowing = computed(() => !!(active.value && followed.value[active.value.key]))
+
+function loadFollowed() {
+  try { followed.value = JSON.parse(localStorage.getItem(FOLLOW_KEY) || '{}') || {} } catch { followed.value = {} }
+}
+function saveFollowed() {
+  try { localStorage.setItem(FOLLOW_KEY, JSON.stringify(followed.value)) } catch {}
+}
+function setCount(n) {
+  if (active.value && Number.isFinite(n)) active.value.followers = n
+}
+
+async function pushSubscription() {
+  const vapid = config.public?.vapidPublicKey
+  if (!vapid || !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return null
+  const perm = await Notification.requestPermission()
+  if (perm !== 'granted') return null
+  const reg = await navigator.serviceWorker.ready
+  const existing = await reg.pushManager.getSubscription()
+  if (existing) return existing.toJSON()
+  const pad = '='.repeat((4 - (vapid.length % 4)) % 4)
+  const raw = atob((vapid + pad).replace(/-/g, '+').replace(/_/g, '/'))
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: Uint8Array.from([...raw].map(c => c.charCodeAt(0))),
+  })
+  return sub.toJSON()
+}
+
+async function toggleFollow() {
+  if (!active.value || followBusy.value) return
+  followMsg.value = ''
+  const key = active.value.key
+  followBusy.value = true
+  try {
+    if (followed.value[key]) {
+      const res = await $fetch('/api/tracking/unfollow', { method: 'POST', body: { expedition: key, ...followed.value[key] } })
+      delete followed.value[key]; saveFollowed(); setCount(res.followers)
+      return
+    }
+    let subscription = null
+    try { subscription = await pushSubscription() } catch { subscription = null }
+    if (!subscription) {
+      showEmailFollow.value = true
+      followMsg.value = 'Notifications are off on this device — follow by email instead.'
+      return
+    }
+    const res = await $fetch('/api/tracking/follow', { method: 'POST', body: { expedition: key, subscription } })
+    followed.value[key] = { endpoint: subscription.endpoint }; saveFollowed(); setCount(res.followers)
+    followMsg.value = 'You’ll get a notification at each checkpoint and field update.'
+  } catch (e) {
+    followMsg.value = e?.data?.statusMessage || 'Could not update follow — please try again.'
+  } finally {
+    followBusy.value = false
+  }
+}
+
+async function followByEmail() {
+  if (!active.value || followBusy.value) return
+  const key = active.value.key
+  followBusy.value = true
+  followMsg.value = ''
+  try {
+    const email = followEmail.value.trim().toLowerCase()
+    const res = await $fetch('/api/tracking/follow', { method: 'POST', body: { expedition: key, email } })
+    followed.value[key] = { email }; saveFollowed(); setCount(res.followers)
+    showEmailFollow.value = false
+    followMsg.value = `We’ll email ${email} at each checkpoint and field update.`
+  } catch (e) {
+    followMsg.value = e?.data?.statusMessage || 'Could not follow — check the email and try again.'
+  } finally {
+    followBusy.value = false
+  }
+}
+
+watch(activeTrackId, () => { followMsg.value = ''; showEmailFollow.value = false })
 
 // ── Live polling ───────────────────────────────────────────────────────────
 // Field updates are entered in the CMS while the team is out; poll so
@@ -564,6 +694,7 @@ async function poll() {
 function onVisible() { if (document.visibilityState === 'visible') poll() }
 
 onMounted(async () => {
+  loadFollowed()
   lastSyncedAt.value = new Date().toISOString()
   pollTimer  = setInterval(poll, POLL_MS)
   clockTimer = setInterval(() => { now.value = Date.now() }, 30_000)
@@ -752,6 +883,11 @@ onUnmounted(() => {
   .ht-feed-grid { grid-template-columns:1fr; }
   .ht-live-counts { display:grid; grid-template-columns:repeat(3,1fr); width:100%; }
 }
+
+/* Follow */
+.ht-follow-email { display:flex; gap:8px; margin-bottom:10px; }
+.ht-follow-email .input { flex:1; min-width:0; }
+.ht-follow-msg { font-size:13px; color:var(--gray); line-height:1.5; margin-bottom:10px; }
 
 /* ── Added: CMS-driven states ─────────────────────────────── */
 .map-fallback-soft { background: rgba(10,10,8,0.55); pointer-events: none; }

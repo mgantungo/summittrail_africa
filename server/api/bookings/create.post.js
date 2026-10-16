@@ -4,6 +4,9 @@
 // generates a human-readable reference, and creates the booking. No
 // payment is processed here — status starts as 'pending-payment' and
 // staff follow up per the confirmation message shown to the customer.
+//
+// Uses the internal CMS URL server-side (hairpin NAT) and reports which
+// CMS step failed and why, instead of a bare 500.
 
 export default defineEventHandler(async (event) => {
   const config = useRuntimeConfig(event)
@@ -14,25 +17,43 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Name, email, adventure, and departure date are required' })
   }
 
-  const base = config.public.strapiUrl
+  const base = config.strapiUrlInternal || config.public.strapiUrl
   const authHeaders = { Authorization: `Bearer ${config.strapiApiToken}` }
 
+  // Runs one CMS call; on failure logs the real Strapi error and returns a
+  // clear message to the browser.
+  async function cms(step, path, opts = {}) {
+    try {
+      return await $fetch(`${base}${path}`, { ...opts, headers: authHeaders })
+    } catch (err) {
+      const status = err?.response?.status
+      const detail = err?.response?._data?.error
+      console.error(`[bookings/create] ${step} failed:`, status || 'no response', detail?.message || err?.message, detail?.details ? JSON.stringify(detail.details) : '')
+      if (!status) {
+        throw createError({ statusCode: 502, statusMessage: `Booking failed: cannot reach the CMS (${step})` })
+      }
+      if (status === 401 || status === 403) {
+        throw createError({ statusCode: 500, statusMessage: `Booking failed: CMS refused the server token (${step})` })
+      }
+      throw createError({ statusCode: status >= 500 ? 502 : 400, statusMessage: `Booking failed (${step}): ${detail?.message || 'CMS error'}` })
+    }
+  }
+
   // Find or create the customer
+  const email = String(customer.email).trim().toLowerCase()
   let customerId
-  const existing = await $fetch(`${base}/api/customers`, {
-    query: { 'filters[email][$eq]': customer.email },
-    headers: authHeaders,
+  const existing = await cms('find customer', '/api/customers', {
+    query: { 'filters[email][$eqi]': email },
   })
   if (existing?.data?.length) {
     customerId = existing.data[0].documentId
   } else {
-    const created = await $fetch(`${base}/api/customers`, {
+    const created = await cms('create customer', '/api/customers', {
       method: 'POST',
-      headers: authHeaders,
       body: {
         data: {
           name: customer.name,
-          email: customer.email,
+          email,
           phone: customer.phone || '',
           country: customer.country || '',
           level: 'Explorer',
@@ -46,11 +67,10 @@ export default defineEventHandler(async (event) => {
     customerId = created?.data?.documentId
   }
 
-  const reference = `STL-${Math.floor(1000 + Math.random() * 9000)}`
+  const reference = `STL-${Date.now().toString(36).toUpperCase().slice(-5)}${Math.floor(10 + Math.random() * 90)}`
 
-  await $fetch(`${base}/api/bookings`, {
+  await cms('create booking', '/api/bookings', {
     method: 'POST',
-    headers: authHeaders,
     body: {
       data: {
         reference,
@@ -71,9 +91,6 @@ export default defineEventHandler(async (event) => {
       },
     },
   })
-
-  // TODO: send confirmation email via Brevo/SMTP here using
-  // config.smtpUser / config.smtpPass, and/or a notification record.
 
   return { success: true, reference }
 })

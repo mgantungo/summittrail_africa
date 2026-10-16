@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@pinia/nuxt": "^0.5.5",
+    "nodemailer": "^6.9.16",
     "nuxt": "^3.15.4",
     "pinia": "^2.2.6",
     "vue": "^3.5.13",

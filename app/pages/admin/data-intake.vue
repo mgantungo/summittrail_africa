@@ -16,6 +16,7 @@
       <li>Each section below submits independently — finish one and come back for the others later.</li>
       <li>Once a draft looks complete, publish it in Strapi and it goes live immediately.</li>
       <li>To create your 4 active expeditions: first save the trail(s) below, publish them in Strapi, then use the "Live Expedition" section once per trip.</li>
+      <li><strong>Live expeditions are the exception:</strong> they are not drafts. Each one appears on the live tracking page automatically on its departure date and leaves it when its last day ends.</li>
     </ul>
 
     <!-- ============================================================ -->
@@ -251,18 +252,12 @@
           <label class="input-label">Departure Date</label>
           <input class="input" type="date" v-model="expedition.departureDate" />
         </div>
-        <div class="field">
-          <label class="input-label">Status</label>
-          <select class="input" v-model="expedition.status">
-            <option value="upcoming">Upcoming</option><option value="active">Active</option><option value="completed">Completed</option>
-          </select>
-        </div>
-
-        <div class="field"><label class="input-label">Current Day</label><input class="input" type="number" min="1" v-model.number="expedition.currentDay" /></div>
         <div class="field"><label class="input-label">Total Days</label><input class="input" type="number" min="1" v-model.number="expedition.totalDays" /></div>
-        <div class="field"><label class="input-label">Participants</label><input class="input" type="number" min="0" v-model.number="expedition.participants" /></div>
+        <div class="field span-2">
+          <p class="field-hint" style="margin:0;">Status, current day and elapsed hours update automatically from the departure date, start time and total days. Participants fill in from confirmed bookings for this trail and date.</p>
+        </div>
+        <div class="field"><label class="input-label">Participants (if no bookings yet)</label><input class="input" type="number" min="0" v-model.number="expedition.participants" /></div>
         <div class="field"><label class="input-label">Max Participants</label><input class="input" type="number" min="0" v-model.number="expedition.maxParticipants" /></div>
-        <div class="field"><label class="input-label">Followers</label><input class="input" type="number" min="0" v-model.number="expedition.followers" /></div>
 
         <div class="field span-2"><label class="input-label">Current Location</label><input class="input" v-model="expedition.currentLocation" placeholder="e.g. Bujuku Valley" /></div>
         <div class="field"><label class="input-label">Current Elevation (m)</label><input class="input" type="number" v-model.number="expedition.currentElevation" /></div>
@@ -272,7 +267,6 @@
         <div class="field"><label class="input-label">Elevation Gain (m)</label><input class="input" type="number" v-model.number="expedition.elevationGain" /></div>
 
         <div class="field"><label class="input-label">Start Time</label><input class="input" v-model="expedition.startTime" placeholder="e.g. 07:00 AM" /></div>
-        <div class="field"><label class="input-label">Elapsed Hours</label><input class="input" type="number" v-model.number="expedition.elapsedHours" /></div>
       </div>
 
       <div class="field-block">
@@ -288,24 +282,6 @@
       <div class="form-grid">
         <div class="field span-2"><label class="input-label">Cover Image</label><ImageUploadInput v-model="expedition.image" /></div>
         <div class="field span-2"><label class="input-label">Map Image</label><ImageUploadInput v-model="expedition.mapImage" /></div>
-      </div>
-
-      <div class="field-block">
-        <label class="input-label">GPS Route (map waypoints)</label>
-        <p class="field-hint" style="margin-bottom:10px;">Drawn on the live tracking map in order. Mark exactly one point "Current" — that's where the team is now.</p>
-        <div class="repeat-card" v-for="(g, i) in expedition.geoRoute" :key="i">
-          <div class="repeat-card-top"><strong>Waypoint {{ i+1 }}</strong><button type="button" class="tag-remove" @click="expedition.geoRoute.splice(i,1)">✕</button></div>
-          <div class="form-grid">
-            <div class="field span-2"><label class="input-label">Label</label><input class="input" v-model="g.label" placeholder="e.g. Bujuku Valley" /></div>
-            <div class="field"><label class="input-label">Latitude</label><input class="input" type="number" step="0.0001" v-model.number="g.lat" placeholder="0.3633" /></div>
-            <div class="field"><label class="input-label">Longitude</label><input class="input" type="number" step="0.0001" v-model.number="g.lng" placeholder="29.9200" /></div>
-            <div class="field">
-              <label class="input-label">Status</label>
-              <select class="input" v-model="g.status"><option value="done">Done</option><option value="current">Current</option><option value="upcoming">Upcoming</option></select>
-            </div>
-          </div>
-        </div>
-        <button type="button" class="tag-add" @click="expedition.geoRoute.push({ label:'', lat:null, lng:null, status:'upcoming' })">+ Add Waypoint</button>
       </div>
 
       <div class="field-block">
@@ -337,10 +313,13 @@
             </div>
             <div class="field"><label class="input-label">Time</label><input class="input" v-model="c.time" placeholder="e.g. Day 2 · Active Now" /></div>
             <div class="field"><label class="input-label">Elevation</label><input class="input" v-model="c.elevation" placeholder="e.g. 3,962m" /></div>
+            <div class="field"><label class="input-label">Latitude</label><input class="input" type="number" step="0.0001" v-model.number="c.lat" placeholder="0.3633" /></div>
+            <div class="field"><label class="input-label">Longitude</label><input class="input" type="number" step="0.0001" v-model.number="c.lng" placeholder="29.9200" /></div>
           </div>
           <textarea class="input" v-model="c.note" rows="2" placeholder="Optional note" />
         </div>
-        <button type="button" class="tag-add" @click="expedition.checkpoints.push({ name:'', status:'upcoming', time:'', elevation:'', note:'' })">+ Add Checkpoint</button>
+        <p class="field-hint" style="margin:-4px 0 10px;">Checkpoints with coordinates are drawn on the tracking map in this order. Guides can fill in missing coordinates from their phone GPS when they reach a checkpoint.</p>
+        <button type="button" class="tag-add" @click="expedition.checkpoints.push({ name:'', status:'upcoming', time:'', elevation:'', note:'', lat:null, lng:null })">+ Add Checkpoint</button>
       </div>
 
       <div class="field-block">
@@ -357,9 +336,9 @@
       </div>
 
       <div class="submit-row">
-        <button class="btn btn-primary" :disabled="expeditionSaving || !expedition.adventureId" @click="submitExpedition">{{ expeditionSaving ? 'Saving…' : '💾 Save Expedition as Draft' }}</button>
+        <button class="btn btn-primary" :disabled="expeditionSaving || !expedition.adventureId" @click="submitExpedition">{{ expeditionSaving ? 'Saving…' : '💾 Save Expedition' }}</button>
         <button class="btn btn-ghost" @click="resetExpedition" type="button">Clear Form</button>
-        <span v-if="expeditionSuccess" class="success-msg">✅ Saved as draft — Content Manager → Live Expedition</span>
+        <span v-if="expeditionSuccess" class="success-msg">✅ Saved — it goes live automatically on its departure date</span>
         <span v-if="expeditionError" class="error-msg">{{ expeditionError }}</span>
       </div>
     </div>
@@ -543,14 +522,14 @@ async function submitTrail() {
 function blankExpedition() {
   return {
     adventureId: null, guideId: null, batchLabel: '', departureDate: '',
-    currentDay: null, totalDays: null, status: 'upcoming',
-    participants: null, maxParticipants: null, followers: null,
+    totalDays: null,
+    participants: null, maxParticipants: null,
     currentLocation: '', currentElevation: null,
     distanceCovered: null, totalDistance: null, elevationGain: null,
-    startTime: '', elapsedHours: null,
+    startTime: '',
     weather: { condition: '', temp: '', wind: '', humidity: '' },
     image: '', mapImage: '',
-    geoRoute: [], team: [], checkpoints: [], feed: [],
+    team: [], checkpoints: [], feed: [],
   }
 }
 const expedition = reactive(blankExpedition())
@@ -561,12 +540,14 @@ function resetExpedition() { Object.assign(expedition, blankExpedition()); exped
 async function submitExpedition() {
   expeditionSaving.value = true; expeditionSuccess.value = false; expeditionError.value = null
   try {
-    const { adventureId, guideId, geoRoute, ...rest } = expedition
-    // lat/lng are required on trip.geo-point — drop half-filled rows
-    const route = geoRoute.filter(g => Number.isFinite(g.lat) && Number.isFinite(g.lng))
+    const { adventureId, guideId, checkpoints, ...rest } = expedition
+    // Empty number inputs come back as '' — store missing coordinates as null
+    const coord = (v) => (Number.isFinite(v) ? v : null)
+    const cps = checkpoints.map(c => ({ ...c, lat: coord(c.lat), lng: coord(c.lng) }))
     await $fetch('/api/cms/live-expeditions', {
       method: 'POST',
-      body: { data: { ...rest, geoRoute: route, adventure: adventureId, guide: guideId } },
+      // status always starts 'upcoming'; the CMS schedule makes it active on the departure date
+      body: { data: { ...rest, checkpoints: cps, status: 'upcoming', adventure: adventureId, guide: guideId } },
     })
     resetExpedition(); expeditionSuccess.value = true
   } catch (e) {

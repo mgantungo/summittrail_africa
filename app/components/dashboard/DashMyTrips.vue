@@ -24,7 +24,9 @@
         </div>
         <div class="upcoming-actions">
           <NuxtLink
-            :to="upcomingAdventure?.slug ? { path: '/tracking', query: { trail: upcomingAdventure.slug } } : '/tracking'"
+            :to="upcomingBooking?.live_expedition?.documentId
+              ? { path: '/tracking', query: { expedition: upcomingBooking.live_expedition.documentId } }
+              : upcomingAdventure?.slug ? { path: '/tracking', query: { trail: upcomingAdventure.slug } } : '/tracking'"
             class="btn btn-primary btn-sm"
           >📍 Live Tracking</NuxtLink>
           <button class="btn btn-ghost btn-sm" @click="$emit('go','documents')">📄 Documents</button>

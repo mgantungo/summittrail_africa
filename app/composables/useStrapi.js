@@ -199,8 +199,30 @@ const LIVE_EXPEDITION_QUERY = [
 // toLocaleString() on null crashes SSR, so coerce once here.
 const toNum = (v) => (v === null || v === undefined || v === '' ? null : Number(v))
 
+// Checkpoint status → map waypoint status
+const CP_TO_ROUTE = { completed: 'done', current: 'current', upcoming: 'upcoming' }
+const hasCoords = (p) => Number.isFinite(p.lat) && Number.isFinite(p.lng)
+
 export function normalizeExpedition(e) {
   const adventure = e.adventure || null
+
+  const checkpoints = (e.checkpoints || []).map(c => ({ ...c, lat: toNum(c.lat), lng: toNum(c.lng) }))
+  const feed = [...(e.feed || [])]
+    .map(f => ({ ...f, lat: toNum(f.lat), lng: toNum(f.lng) }))
+    .sort((a, b) => new Date(b.postedAt || 0) - new Date(a.postedAt || 0)) // newest first
+
+  // The map route is the checkpoints that have coordinates. geoRoute is
+  // deprecated and only used for older entries whose checkpoints have none.
+  const cpRoute = checkpoints
+    .filter(hasCoords)
+    .map(c => ({ lat: c.lat, lng: c.lng, label: c.name, status: CP_TO_ROUTE[c.status] || 'upcoming' }))
+  const legacyRoute = (e.geoRoute || [])
+    .map(p => ({ ...p, lat: toNum(p.lat), lng: toNum(p.lng) }))
+    .filter(hasCoords)
+
+  // Most recent GPS fix the guide sent with a field post
+  const lastFix = feed.find(hasCoords) || null
+
   return {
     ...e,
     // documentId is Strapi 5's stable public identifier — used for URLs
@@ -220,15 +242,12 @@ export function normalizeExpedition(e) {
     elevationGain:    toNum(e.elevationGain),
     elapsedHours:     toNum(e.elapsedHours),
     weather: e.weather || {},
-    geoRoute: (e.geoRoute || [])
-      .map(p => ({ ...p, lat: toNum(p.lat), lng: toNum(p.lng) }))
-      .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng)),
-    team:        e.team || [],
-    checkpoints: e.checkpoints || [],
-    // newest field post first
-    feed: [...(e.feed || [])].sort(
-      (a, b) => new Date(b.postedAt || 0) - new Date(a.postedAt || 0)
-    ),
+    route: cpRoute.length ? cpRoute : legacyRoute,
+    lastFix: lastFix ? { lat: lastFix.lat, lng: lastFix.lng, postedAt: lastFix.postedAt } : null,
+    lastFieldUpdateAt: e.lastFieldUpdateAt || null,
+    team: e.team || [],
+    checkpoints,
+    feed,
   }
 }
 

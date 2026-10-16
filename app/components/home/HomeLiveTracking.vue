@@ -1,18 +1,20 @@
-<!--app/components/home/HomeLiveTracking.vue-->
 <template>
-  <section class="home-tracking section" v-if="liveExpeditions.length">
+  <section class="home-tracking section" v-if="liveExpeditions.length || isPage">
 
-    <!-- Header + stat counters (unchanged) -->
+    <!-- Header + stat counters -->
     <div class="ht-header">
       <div>
         <div class="section-label">Live Now</div>
-        <h2 class="section-title">Active<br><span>Expeditions</span></h2>
+        <component :is="isPage ? 'h1' : 'h2'" class="section-title">Active<br><span>Expeditions</span></component>
         <p class="section-sub" style="margin-top:10px;">
-          {{ liveExpeditions.length }} expedition{{ liveExpeditions.length > 1 ? 's' : '' }} in the field.
-          Follow in real-time.
+          <template v-if="liveExpeditions.length">
+            {{ liveExpeditions.length }} expedition{{ liveExpeditions.length > 1 ? 's' : '' }} in the field.
+            Follow in real-time.
+          </template>
+          <template v-else>No expeditions are in the field right now.</template>
         </p>
       </div>
-      <div class="ht-live-counts">
+      <div class="ht-live-counts" v-if="liveExpeditions.length">
         <div class="ht-count-card">
           <div class="ht-live-pulse"><div class="live-dot" /></div>
           <div class="ht-count-val">{{ liveExpeditions.length }}</div>
@@ -23,22 +25,39 @@
           <div class="ht-count-label">In The Field</div>
         </div>
         <div class="ht-count-card">
-          <div class="ht-count-val" style="color:var(--gold);">{{ totalFollowers }}</div>
+          <div class="ht-count-val" style="color:var(--gold);">{{ totalFollowers.toLocaleString() }}</div>
           <div class="ht-count-label">Following</div>
         </div>
       </div>
     </div>
 
-    <!-- Expedition switcher tabs (unchanged) -->
+    <!-- Requested trail / expedition isn't live -->
+    <div v-if="requestMissed" class="ht-notice">
+      <template v-if="liveExpeditions.length">
+        That trail has no expedition in the field right now — showing the other live expeditions instead.
+      </template>
+      <template v-else>
+        That trail has no expedition in the field right now.
+      </template>
+    </div>
+
+    <!-- Empty state (full page only) -->
+    <div v-if="!liveExpeditions.length && isPage" class="ht-empty">
+      <div class="ht-empty-icon">🏔️</div>
+      <p>When a team sets off, their route, checkpoints and field updates appear here live.</p>
+      <NuxtLink to="/adventures" class="btn btn-primary btn-sm">Browse Adventures</NuxtLink>
+    </div>
+
+    <!-- Expedition switcher tabs -->
     <div class="ht-tabs" v-if="liveExpeditions.length > 1">
       <button
-        v-for="exp in liveExpeditions" :key="exp.id"
-        class="ht-tab" :class="{ active: activeTrackId === exp.id }"
-        @click="switchExpedition(exp.id)"
+        v-for="exp in liveExpeditions" :key="exp.key"
+        class="ht-tab" :class="{ active: activeTrackId === exp.key }"
+        @click="switchExpedition(exp.key)"
       >
         <div class="ht-tab-live"><div class="ht-tab-dot" />LIVE</div>
-        <div class="ht-tab-name">{{ exp.adventureTitle }}</div>
-        <div class="ht-tab-meta">Day {{ exp.currentDay }}/{{ exp.totalDays }} · {{ exp.participants }} people</div>
+        <div class="ht-tab-name">{{ exp.adventureTitle }}<span v-if="exp.batchLabel" class="ht-tab-batch"> · {{ exp.batchLabel }}</span></div>
+        <div class="ht-tab-meta">Day {{ exp.currentDay ?? '—' }}/{{ exp.totalDays ?? '—' }} · {{ exp.participants }} people</div>
       </button>
     </div>
 
@@ -48,10 +67,8 @@
       <!-- LEFT: map + feed -->
       <div class="ht-left">
 
-        <!-- ── GOOGLE MAP SECTION ───────────────────── -->
         <div class="ht-map">
 
-          <!-- View toggle -->
           <div class="map-toggle">
             <button
               v-for="v in viewOptions" :key="v.id"
@@ -61,67 +78,77 @@
             >{{ v.icon }} {{ v.label }}</button>
           </div>
 
-          <!-- Google Maps container — filled by JS -->
           <div ref="mapEl" class="gmap-canvas"></div>
 
           <!-- No-API-key fallback -->
-          <div v-if="!mapsReady && !mapsLoading" class="map-fallback">
+          <div v-if="!MAPS_KEY" class="map-fallback">
             <div class="mf-icon">🗺️</div>
             <div class="mf-text">Google Maps API key required</div>
             <div class="mf-sub">Set <code>NUXT_PUBLIC_GOOGLE_MAPS_KEY</code> in your .env file</div>
           </div>
 
-          <!-- Loading state -->
+          <!-- Key present but this expedition has no GPS points in the CMS -->
+          <div v-else-if="mapsReady && !geoRoute.length" class="map-fallback map-fallback-soft">
+            <div class="mf-icon">📡</div>
+            <div class="mf-text">No GPS route posted yet</div>
+            <div class="mf-sub">Waypoints appear once the field team adds them to this expedition.</div>
+          </div>
+
           <div v-if="mapsLoading" class="map-loading">
             <div class="map-spinner"></div>
             <div class="map-loading-text">Loading map…</div>
           </div>
 
-          <!-- Overlays — sit on top of Google Maps via z-index -->
-          <div class="ht-live-badge" v-if="mapsReady">
+          <div class="ht-live-badge">
             <div class="ht-live-dot" />
-            LIVE — Day {{ active.currentDay }} of {{ active.totalDays }}
+            LIVE — Day {{ active.currentDay ?? '—' }} of {{ active.totalDays ?? '—' }}
           </div>
 
-          <div class="ht-guide-card" v-if="mapsReady && active?.guide">
-            <img :src="active.guide.avatar" :alt="active.guide.name" class="ht-guide-ava" />
+          <div class="ht-guide-card" v-if="active.guide">
+            <img v-if="active.guide.avatar" :src="active.guide.avatar" :alt="active.guide.name" class="ht-guide-ava" />
             <div>
               <div class="ht-guide-name">{{ active.guide.name }}</div>
-              <div class="ht-guide-role">Lead Guide</div>
+              <div class="ht-guide-role">{{ active.guide.role || 'Guide' }}</div>
             </div>
           </div>
 
-          <div class="ht-pos-card" v-if="mapsReady">
-            <div class="ht-pos-loc">📍 {{ active.currentLocation }}</div>
-            <div class="ht-pos-elev">⛰ {{ active.currentElevation.toLocaleString() }}m</div>
-            <div class="ht-pos-wx">🌤 {{ active.weather.temp }} · {{ active.weather.condition }}</div>
+          <div class="ht-pos-card">
+            <div class="ht-pos-loc" v-if="active.currentLocation">📍 {{ active.currentLocation }}</div>
+            <div class="ht-pos-elev" v-if="active.currentElevation != null">⛰ {{ active.currentElevation.toLocaleString() }}m</div>
+            <div class="ht-pos-wx" v-if="active.weather.temp || active.weather.condition">
+              🌤 {{ [active.weather.temp, active.weather.condition].filter(Boolean).join(' · ') }}
+            </div>
           </div>
 
           <div class="ht-progress">
             <div class="ht-prog-labels">
-              <span>{{ active.distanceCovered }}km covered</span>
+              <span>{{ active.distanceCovered }}km covered<template v-if="active.totalDistance"> of {{ active.totalDistance }}km</template></span>
               <span>{{ pct }}% complete</span>
             </div>
             <div class="ht-prog-track"><div class="ht-prog-fill" :style="{ width: pct + '%' }" /></div>
           </div>
         </div>
 
-        <!-- Feed: latest 3 updates (unchanged) -->
+        <!-- Field updates -->
         <div class="ht-feed">
           <div class="ht-feed-header">
             <div class="section-label" style="margin-bottom:0;">Latest Field Updates</div>
-            <span class="ht-feed-count">{{ active.feed.length }} updates</span>
+            <span class="ht-feed-count">
+              {{ active.feed.length }} update{{ active.feed.length === 1 ? '' : 's' }}
+              <template v-if="lastSynced"> · synced {{ lastSynced }}</template>
+            </span>
           </div>
-          <div class="ht-feed-grid">
-            <div v-for="item in active.feed.slice(0, 3)" :key="item.id" class="ht-feed-card">
-              <div class="ht-feed-img-wrap">
+          <div v-if="!active.feed.length" class="ht-feed-empty">No field updates posted yet.</div>
+          <div v-else class="ht-feed-grid">
+            <div v-for="(item, i) in visibleFeed" :key="item.id ?? i" class="ht-feed-card">
+              <div class="ht-feed-img-wrap" v-if="item.image">
                 <img :src="item.image" :alt="item.text" class="ht-feed-img" loading="lazy" />
               </div>
               <div class="ht-feed-body">
                 <p class="ht-feed-text">{{ item.text }}</p>
                 <div class="ht-feed-foot">
                   <span class="ht-feed-author">{{ item.author }}</span>
-                  <span class="ht-feed-time">{{ ago(item.minutesAgo) }}</span>
+                  <span class="ht-feed-time" v-if="item.postedAt" :title="new Date(item.postedAt).toLocaleString()">{{ ago(item.postedAt) }}</span>
                 </div>
               </div>
             </div>
@@ -129,7 +156,7 @@
         </div>
       </div>
 
-      <!-- RIGHT: stats + checkpoints + follow (unchanged) -->
+      <!-- RIGHT: stats + team + checkpoints + follow -->
       <div class="ht-right">
         <div class="ht-stats">
           <div class="ht-stat" v-for="s in activeStats" :key="s.label">
@@ -138,10 +165,22 @@
           </div>
         </div>
 
-        <div class="ht-checkpoints">
+        <div class="ht-team" v-if="isPage && active.team.length">
+          <div class="section-label" style="margin-bottom:12px;">Team In The Field</div>
+          <div class="ht-team-list">
+            <div v-for="(m, i) in active.team" :key="m.id ?? i" class="ht-team-item">
+              <img v-if="m.avatar" :src="m.avatar" :alt="m.name" class="ht-team-ava" loading="lazy" />
+              <div v-else class="ht-team-ava ht-team-initial">{{ (m.name || '?').charAt(0) }}</div>
+              <div class="ht-team-name">{{ m.flag }} {{ m.name }}</div>
+              <span class="ht-team-status" :class="`ht-team-${m.status}`">{{ m.status }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ht-checkpoints" v-if="active.checkpoints.length">
           <div class="section-label" style="margin-bottom:16px;">Route Progress</div>
           <div class="ht-cp-list">
-            <div v-for="(cp, i) in active.checkpoints" :key="cp.name" class="ht-cp-item">
+            <div v-for="(cp, i) in active.checkpoints" :key="cp.id ?? cp.name" class="ht-cp-item">
               <div class="ht-cp-track">
                 <div class="ht-cp-dot" :class="`ht-dot-${cp.status}`" />
                 <div v-if="i < active.checkpoints.length - 1" class="ht-cp-line" :class="`ht-line-${cp.status}`" />
@@ -151,7 +190,7 @@
                   {{ cp.name }}
                   <span v-if="cp.status === 'current'" class="ht-cp-tag">← LIVE</span>
                 </div>
-                <div class="ht-cp-meta">{{ cp.time }} · {{ cp.elevation }}</div>
+                <div class="ht-cp-meta">{{ [cp.time, cp.elevation].filter(Boolean).join(' · ') }}</div>
                 <div v-if="cp.note" class="ht-cp-note" :class="{ 'ht-cp-note-live': cp.status === 'current' }">
                   {{ cp.note }}
                 </div>
@@ -173,7 +212,10 @@
               ? `❤️ Following — ${active.followers + 1} followers`
               : `🔔 Follow Live · ${active.followers} following` }}
           </button>
-          <NuxtLink to="/tracking" class="btn btn-ghost btn-full btn-sm">
+          <NuxtLink v-if="active.adventureSlug" :to="`/adventures/${active.adventureSlug}`" class="btn btn-ghost btn-full btn-sm" style="margin-bottom:8px;">
+            View This Trail →
+          </NuxtLink>
+          <NuxtLink v-if="!isPage" :to="{ path: '/tracking', query: { expedition: active.key } }" class="btn btn-ghost btn-full btn-sm">
             Open Full Tracking Page →
           </NuxtLink>
         </div>
@@ -183,21 +225,68 @@
 </template>
 
 <script setup>
-const { data: liveExpeditions } = await useLiveExpeditions()
+// app/components/home/HomeLiveTracking.vue
+//
+// Used on the home page (variant="home") and as the body of /tracking
+// (variant="page"). All data comes from the Strapi `live-expedition`
+// collection via useLiveExpeditions() — status=active only.
+//
+// /tracking deep links:
+//   /tracking?expedition=<documentId>  → that exact expedition
+//   /tracking?trail=<adventure slug>   → the live expedition on that trail
+const props = defineProps({
+  variant:      { type: String, default: 'home' },   // 'home' | 'page'
+  expeditionId: { type: String, default: '' },
+  trailSlug:    { type: String, default: '' },
+})
+const emit = defineEmits(['select'])
+const isPage = computed(() => props.variant === 'page')
 
-// ── State ──────────────────────────────────────────────────────────────────
-const activeTrackId = ref(liveExpeditions.value[0]?.id)
+const { data: liveExpeditions, refresh } = await useLiveExpeditions()
+
+// ── Selection ─────────────────────────────────────────────────────────────
+function resolveRequested() {
+  const list = liveExpeditions.value
+  if (props.expeditionId) {
+    const m = list.find(e => e.key === props.expeditionId || String(e.id) === props.expeditionId)
+    if (m) return m.key
+  }
+  if (props.trailSlug) {
+    const m = list.find(e => e.adventureSlug === props.trailSlug)
+    if (m) return m.key
+  }
+  return null
+}
+
+const activeTrackId = ref(resolveRequested() || liveExpeditions.value[0]?.key)
+const requestMissed = computed(() =>
+  !!(props.expeditionId || props.trailSlug) && !resolveRequested()
+)
+
+watch(() => [props.expeditionId, props.trailSlug], () => {
+  const k = resolveRequested()
+  if (k) activeTrackId.value = k
+})
+
+// After a poll, if the selected expedition is no longer active (completed
+// or unpublished), fall back to the first live one.
+watch(liveExpeditions, (list) => {
+  if (!list.find(e => e.key === activeTrackId.value)) {
+    activeTrackId.value = resolveRequested() || list[0]?.key
+  }
+})
+
 const following     = ref(false)
 const mapView       = ref('satellite') // 'map' | 'satellite' | 'street'
 const mapEl         = ref(null)
 const mapsReady     = ref(false)
 const mapsLoading   = ref(false)
 
-let gmap       = null   // google.maps.Map instance
-let panorama   = null   // google.maps.StreetViewPanorama
-let routeLines = []     // drawn Polylines
-let markers    = []     // checkpoint Markers
-let svChecker  = null   // StreetViewService
+let gmap       = null
+let panorama   = null
+let routeLines = []
+let markers    = []
+let svChecker  = null
 
 const viewOptions = [
   { id: 'map',       icon: '🗺️',  label: 'Map'        },
@@ -206,35 +295,55 @@ const viewOptions = [
 ]
 
 // ── Computed ───────────────────────────────────────────────────────────────
-const active = computed(() => liveExpeditions.value.find(e => e.id === activeTrackId.value))
+const active = computed(() => liveExpeditions.value.find(e => e.key === activeTrackId.value))
 
 const totalParticipants = computed(() => liveExpeditions.value.reduce((s, e) => s + e.participants, 0))
 const totalFollowers    = computed(() => liveExpeditions.value.reduce((s, e) => s + e.followers,    0))
 
 const pct = computed(() => {
-  if (!active.value) return 0
-  return Math.min(100, Math.round((active.value.distanceCovered / active.value.totalDistance) * 100))
+  const a = active.value
+  if (!a || !a.totalDistance) return 0
+  return Math.min(100, Math.round((a.distanceCovered / a.totalDistance) * 100))
 })
 
-const activeStats = computed(() => active.value ? [
-  { val: `${active.value.currentElevation.toLocaleString()}m`, label: 'Elevation' },
-  { val: `${active.value.distanceCovered}km`,                  label: 'Covered'   },
-  { val: active.value.participants,                            label: 'Active'    },
-  { val: active.value.weather.temp,                           label: active.value.weather.condition },
-] : [])
+const activeStats = computed(() => {
+  const a = active.value
+  if (!a) return []
+  const stats = [
+    { val: a.currentElevation != null ? `${a.currentElevation.toLocaleString()}m` : '—', label: 'Elevation' },
+    { val: `${a.distanceCovered}km`, label: 'Covered' },
+    { val: a.maxParticipants ? `${a.participants}/${a.maxParticipants}` : a.participants, label: 'Active' },
+    { val: a.weather.temp || '—', label: a.weather.condition || 'Weather' },
+  ]
+  if (isPage.value) {
+    if (a.elapsedHours != null)  stats.push({ val: `${a.elapsedHours}h`, label: 'Elapsed' })
+    if (a.elevationGain != null) stats.push({ val: `${a.elevationGain.toLocaleString()}m`, label: 'Elev. Gain' })
+    if (a.weather.wind)          stats.push({ val: a.weather.wind, label: 'Wind' })
+    if (a.weather.humidity)      stats.push({ val: a.weather.humidity, label: 'Humidity' })
+  }
+  return stats
+})
 
-// The current expedition's geo waypoints (falls back gracefully if missing)
+const visibleFeed = computed(() => isPage.value ? active.value.feed : active.value.feed.slice(0, 3))
+
 const geoRoute = computed(() => active.value?.geoRoute || [])
-
 const currentGeoPoint = computed(() =>
-  geoRoute.value.find(p => p.status === 'current') || geoRoute.value[0]
+  geoRoute.value.find(p => p.status === 'current') || geoRoute.value[geoRoute.value.length - 1]
 )
 
-function ago(mins) {
+// Relative time from the CMS postedAt timestamp. `now` ticks every minute
+// so labels stay correct between polls.
+const now = useState('ht-now', () => Date.now())
+function ago(iso) {
+  const mins = Math.max(0, Math.floor((now.value - new Date(iso).getTime()) / 60000))
+  if (mins < 1)    return 'just now'
   if (mins < 60)   return `${mins}m ago`
   if (mins < 1440) return `${Math.floor(mins / 60)}h ago`
   return `${Math.floor(mins / 1440)}d ago`
 }
+
+const lastSyncedAt = ref(null)
+const lastSynced = computed(() => lastSyncedAt.value ? ago(lastSyncedAt.value) : '')
 
 // ── Google Maps API loader ─────────────────────────────────────────────────
 const config  = useRuntimeConfig()
@@ -255,7 +364,6 @@ async function loadMapsApi() {
   })
 }
 
-// ── Dark map style matching Summit Trail theme ─────────────────────────────
 const darkMapStyle = [
   { elementType: 'geometry',   stylers: [{ color: '#1c1c18' }] },
   { elementType: 'labels.text.stroke', stylers: [{ color: '#0a0a08' }] },
@@ -275,36 +383,30 @@ const darkMapStyle = [
 ]
 
 // ── Map initialisation ─────────────────────────────────────────────────────
+// Initialises even when the expedition has no geoRoute yet (previously the
+// map stayed blank behind a misleading "API key required" message).
 function initMap() {
-  if (!mapEl.value || !window.google?.maps || !geoRoute.value.length) return
+  if (gmap || !mapEl.value || !window.google?.maps) return
 
-  const center = currentGeoPoint.value
-    ? { lat: currentGeoPoint.value.lat, lng: currentGeoPoint.value.lng }
-    : { lat: 0.38, lng: 29.9 }
-
+  const pt = currentGeoPoint.value
   gmap = new google.maps.Map(mapEl.value, {
-    center,
-    zoom: 11,
-    mapTypeId: 'terrain',
+    center: pt ? { lat: pt.lat, lng: pt.lng } : { lat: 1.37, lng: 32.29 }, // Uganda
+    zoom: pt ? 11 : 7,
+    mapTypeId: 'hybrid',
     disableDefaultUI: true,
     gestureHandling: 'cooperative',
-    styles: darkMapStyle,
   })
 
-  // Street view panorama — linked to the same map div
   panorama = gmap.getStreetView()
   panorama.addListener('visible_changed', () => {
-    if (!panorama.getVisible()) mapView.value = 'satellite'
+    if (!panorama.getVisible() && mapView.value === 'street') mapView.value = 'satellite'
   })
-
-  // StreetViewService used to check coverage before entering street view
   svChecker = new google.maps.StreetViewService()
 
-  drawRoute()
+  drawRoute({ fit: true })
   mapsReady.value = true
 }
 
-// ── Route drawing ──────────────────────────────────────────────────────────
 function clearMapObjects() {
   routeLines.forEach(l => l.setMap(null))
   routeLines = []
@@ -312,66 +414,47 @@ function clearMapObjects() {
   markers = []
 }
 
-function drawRoute() {
-  if (!gmap || !geoRoute.value.length) return
+function drawRoute({ fit = false } = {}) {
+  if (!gmap) return
   clearMapObjects()
+  const pts = geoRoute.value
+  if (!pts.length) return
 
-  const pts          = geoRoute.value
-  const currentIdx   = pts.findIndex(p => p.status === 'current')
+  let currentIdx = pts.findIndex(p => p.status === 'current')
+  if (currentIdx < 0) currentIdx = pts.map(p => p.status).lastIndexOf('done')
 
-  // Completed segment — orange solid
-  const completedCoords = pts
-    .slice(0, currentIdx + 1)
-    .map(p => ({ lat: p.lat, lng: p.lng }))
-
+  const completedCoords = pts.slice(0, currentIdx + 1).map(p => ({ lat: p.lat, lng: p.lng }))
   if (completedCoords.length > 1) {
     const completed = new google.maps.Polyline({
-      path:         completedCoords,
-      geodesic:     true,
-      strokeColor:  '#e8622a',
-      strokeOpacity: 0.95,
-      strokeWeight: 4,
+      path: completedCoords, geodesic: true,
+      strokeColor: '#e8622a', strokeOpacity: 0.95, strokeWeight: 4,
     })
     completed.setMap(gmap)
     routeLines.push(completed)
   }
 
-  // Upcoming segment — grey dashed
-  const upcomingCoords = pts
-    .slice(currentIdx)
-    .map(p => ({ lat: p.lat, lng: p.lng }))
-
+  const upcomingCoords = pts.slice(Math.max(currentIdx, 0)).map(p => ({ lat: p.lat, lng: p.lng }))
   if (upcomingCoords.length > 1) {
     const upcomingLine = new google.maps.Polyline({
-      path: upcomingCoords,
-      geodesic: true,
-      strokeColor:  '#6b6c62',
-      strokeOpacity: 0,
-      strokeWeight: 0,
+      path: upcomingCoords, geodesic: true,
+      strokeColor: '#6b6c62', strokeOpacity: 0, strokeWeight: 0,
       icons: [{
-        icon: {
-          path: 'M 0,-1 0,1',
-          strokeOpacity: 0.7,
-          strokeColor: '#6b6c62',
-          scale: 3,
-        },
-        offset: '0',
-        repeat: '16px',
+        icon: { path: 'M 0,-1 0,1', strokeOpacity: 0.7, strokeColor: '#6b6c62', scale: 3 },
+        offset: '0', repeat: '16px',
       }],
     })
     upcomingLine.setMap(gmap)
     routeLines.push(upcomingLine)
   }
 
-  // Checkpoint markers
-  pts.forEach((pt, i) => {
-    const isCurrent  = pt.status === 'current'
+  pts.forEach((pt) => {
+    const isCurrent   = pt.status === 'current'
     const isCompleted = pt.status === 'done'
-
     const marker = new google.maps.Marker({
       position: { lat: pt.lat, lng: pt.lng },
       map: gmap,
       title: pt.label || '',
+      zIndex: isCurrent ? 10 : 1,
       icon: {
         path:         google.maps.SymbolPath.CIRCLE,
         scale:        isCurrent ? 12 : 8,
@@ -382,85 +465,111 @@ function drawRoute() {
       },
     })
 
-    // Label tooltip on hover
-    const infoWindow = new google.maps.InfoWindow({
-      content: `<div style="font-family:sans-serif;font-size:13px;color:#0a0a08;padding:4px 8px;">
-        <strong>${pt.label || ''}</strong><br>
-        <span style="color:${isCurrent ? '#e8622a' : '#555'}">${pt.status === 'current' ? '← LIVE NOW' : pt.status}</span>
-      </div>`,
-    })
-
-    marker.addListener('click', () => {
-      infoWindow.open(gmap, marker)
-    })
-
+    // Built with DOM nodes, not an HTML string — the label is CMS text
+    const box = document.createElement('div')
+    box.style.cssText = 'font-family:sans-serif;font-size:13px;color:#0a0a08;padding:4px 8px;'
+    const strong = document.createElement('strong')
+    strong.textContent = pt.label || ''
+    const status = document.createElement('div')
+    status.style.color = isCurrent ? '#e8622a' : '#555'
+    status.textContent = isCurrent ? '← LIVE NOW' : (pt.status || '')
+    box.append(strong, status)
+    const infoWindow = new google.maps.InfoWindow({ content: box })
+    marker.addListener('click', () => infoWindow.open(gmap, marker))
     markers.push(marker)
   })
 
-  // Fit map bounds to show entire route
-  const bounds = new google.maps.LatLngBounds()
-  pts.forEach(p => bounds.extend({ lat: p.lat, lng: p.lng }))
-  gmap.fitBounds(bounds, { top: 60, right: 60, bottom: 80, left: 60 })
+  if (fit) {
+    if (pts.length === 1) {
+      gmap.setCenter({ lat: pts[0].lat, lng: pts[0].lng })
+      gmap.setZoom(12)
+    } else {
+      const bounds = new google.maps.LatLngBounds()
+      pts.forEach(p => bounds.extend({ lat: p.lat, lng: p.lng }))
+      gmap.fitBounds(bounds, { top: 60, right: 60, bottom: 80, left: 60 })
+    }
+  }
 }
 
 // ── View switching ─────────────────────────────────────────────────────────
 function setView(view) {
   mapView.value = view
-
   if (!gmap) return
 
   if (view === 'map') {
     panorama.setVisible(false)
     gmap.setMapTypeId('terrain')
     gmap.setOptions({ styles: darkMapStyle })
-  }
-
-  else if (view === 'satellite') {
+  } else if (view === 'satellite') {
     panorama.setVisible(false)
-    gmap.setMapTypeId('hybrid')   // satellite + labels
+    gmap.setMapTypeId('hybrid')
     gmap.setOptions({ styles: [] })
-  }
-
-  else if (view === 'street') {
+  } else if (view === 'street') {
     const pos = currentGeoPoint.value
-    if (!pos) return
-
+    if (!pos) { mapView.value = 'satellite'; return }
     const latLng = new google.maps.LatLng(pos.lat, pos.lng)
-
-    // Check for street view coverage within 50km radius
-    // (remote Uganda areas may not have coverage — we fall back gracefully)
-    svChecker.getPanorama(
-      { location: latLng, radius: 50000 },
-      (data, status) => {
-        if (status === google.maps.StreetViewStatus.OK) {
-          panorama.setPosition(data.location.latLng)
-          panorama.setPov({ heading: 0, pitch: 0 })
-          panorama.setVisible(true)
-        } else {
-          // No street view — fall back to close satellite zoom
-          mapView.value = 'satellite'
-          gmap.setMapTypeId('hybrid')
-          gmap.setOptions({ styles: [] })
-          gmap.setCenter(latLng)
-          gmap.setZoom(15)
-          alert('Street View is not available at this remote location. Showing close satellite view.')
-        }
+    svChecker.getPanorama({ location: latLng, radius: 50000 }, (data, status) => {
+      if (status === google.maps.StreetViewStatus.OK) {
+        panorama.setPosition(data.location.latLng)
+        panorama.setPov({ heading: 0, pitch: 0 })
+        panorama.setVisible(true)
+      } else {
+        mapView.value = 'satellite'
+        gmap.setMapTypeId('hybrid')
+        gmap.setOptions({ styles: [] })
+        gmap.setCenter(latLng)
+        gmap.setZoom(15)
+        alert('Street View is not available at this remote location. Showing close satellite view.')
       }
-    )
+    })
   }
 }
 
 // ── Expedition switching ───────────────────────────────────────────────────
-function switchExpedition(id) {
-  activeTrackId.value = id
-  nextTick(() => {
-    if (gmap) drawRoute()
-  })
+function switchExpedition(key) {
+  activeTrackId.value = key
+  emit('select', key)
 }
 
-// ── Lifecycle ─────────────────────────────────────────────────────────────
+// New expedition selected → redraw and fit the whole route
+watch(activeTrackId, async () => {
+  if (!gmap) return
+  await nextTick()
+  drawRoute({ fit: true })
+})
+
+// Same expedition, new field data from a poll → redraw without moving the
+// viewer's camera
+watch(() => JSON.stringify(geoRoute.value), (next, prev) => {
+  if (!gmap || next === prev) return
+  drawRoute({ fit: !prev || prev === '[]' })
+})
+
+// The map div only exists while an expedition is shown — if expeditions
+// appear after mount (e.g. on a poll), initialise then.
+watch(mapEl, (el) => { if (el && window.google?.maps) initMap() })
+
+// ── Live polling ───────────────────────────────────────────────────────────
+// Field updates are entered in the CMS while the team is out; poll so
+// viewers see them without reloading. Pauses while the tab is hidden.
+const POLL_MS = 60_000
+let pollTimer = null
+let clockTimer = null
+
+async function poll() {
+  if (document.visibilityState === 'hidden') return
+  await refresh()
+  lastSyncedAt.value = new Date().toISOString()
+}
+function onVisible() { if (document.visibilityState === 'visible') poll() }
+
 onMounted(async () => {
-  if (!MAPS_KEY) return   // No key — show fallback
+  lastSyncedAt.value = new Date().toISOString()
+  pollTimer  = setInterval(poll, POLL_MS)
+  clockTimer = setInterval(() => { now.value = Date.now() }, 30_000)
+  document.addEventListener('visibilitychange', onVisible)
+
+  if (!MAPS_KEY) return
   const ok = await loadMapsApi()
   if (ok) {
     await nextTick()
@@ -468,17 +577,10 @@ onMounted(async () => {
   }
 })
 
-// Re-draw whenever active expedition changes
-watch(active, async () => {
-  if (!gmap || !mapsReady.value) return
-  await nextTick()
-  drawRoute()
-  // Re-centre on the new expedition's current position
-  const pt = currentGeoPoint.value
-  if (pt) gmap.panTo({ lat: pt.lat, lng: pt.lng })
-})
-
 onUnmounted(() => {
+  clearInterval(pollTimer)
+  clearInterval(clockTimer)
+  document.removeEventListener('visibilitychange', onVisible)
   clearMapObjects()
   gmap = null
   panorama = null
@@ -649,5 +751,31 @@ onUnmounted(() => {
 @media (max-width:480px) {
   .ht-feed-grid { grid-template-columns:1fr; }
   .ht-live-counts { display:grid; grid-template-columns:repeat(3,1fr); width:100%; }
+}
+
+/* ── Added: CMS-driven states ─────────────────────────────── */
+.map-fallback-soft { background: rgba(10,10,8,0.55); pointer-events: none; }
+.ht-notice { border:1px solid var(--border); border-left:3px solid var(--orange); background:var(--panel); padding:12px 16px; margin-bottom:16px; font-size:14px; color:var(--text); }
+.ht-empty { border:1px solid var(--border); background:var(--charcoal); padding:48px 20px; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center; color:var(--gray); }
+.ht-empty-icon { font-size:44px; }
+.ht-feed-empty { font-size:14px; color:var(--gray); padding:14px 0; }
+.ht-tab-batch { color:var(--gray); font-weight:400; }
+
+.ht-team { background:var(--panel); border:1px solid var(--border); padding:18px; }
+.ht-team-list { display:flex; flex-direction:column; gap:10px; }
+.ht-team-item { display:flex; align-items:center; gap:10px; }
+.ht-team-ava { width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+.ht-team-initial { display:flex; align-items:center; justify-content:center; background:var(--charcoal); color:var(--orange); font-family:var(--font-condensed); font-weight:700; }
+.ht-team-name { flex:1; font-family:var(--font-condensed); font-size:14px; color:var(--text); }
+.ht-team-status { font-family:var(--font-condensed); font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:2px 8px; border:1px solid var(--border); color:var(--gray); }
+.ht-team-strong  { color:#4d8c4d; border-color:#4d8c4d; }
+.ht-team-resting { color:var(--gold); border-color:var(--gold); }
+.ht-team-injured { color:var(--red); border-color:var(--red); }
+
+@media (max-width:900px) {
+  .ht-team { grid-column:span 2; }
+}
+@media (max-width:768px) {
+  .ht-team { grid-column:span 1; }
 }
 </style>

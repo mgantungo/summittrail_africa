@@ -23,7 +23,10 @@
           <div class="cd-unit"><div class="cd-num">{{ cd.mins }}</div><div class="cd-label">Mins</div></div>
         </div>
         <div class="upcoming-actions">
-          <NuxtLink to="/tracking" class="btn btn-primary btn-sm">📍 Live Tracking</NuxtLink>
+          <NuxtLink
+            :to="upcomingAdventure?.slug ? { path: '/tracking', query: { trail: upcomingAdventure.slug } } : '/tracking'"
+            class="btn btn-primary btn-sm"
+          >📍 Live Tracking</NuxtLink>
           <button class="btn btn-ghost btn-sm" @click="$emit('go','documents')">📄 Documents</button>
         </div>
       </div>

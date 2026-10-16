@@ -23,8 +23,13 @@ function strapiBase() {
   // navigation runs in the browser and uses the public URL. This split
   // was lost in a later rewrite of this file (the populate/query-string
   // fix below) — restoring it here.
+  //
+  // strapiUrlInternal is declared at the TOP level of runtimeConfig in
+  // nuxt.config.js (server-only, not under `public`), so it must be read
+  // as cfg.strapiUrlInternal — cfg.public.strapiUrlInternal is always
+  // undefined, which silently sent every SSR fetch to the public domain.
   const url = process.server
-    ? (cfg.public.strapiUrlInternal || cfg.public.strapiUrl)
+    ? (cfg.strapiUrlInternal || cfg.public.strapiUrl)
     : cfg.public.strapiUrl
 
   if (!url) {
@@ -165,11 +170,72 @@ export function useReviews(adventureSlug) {
 }
 
 // ── Live expeditions ─────────────────────────────────────────────────────
+// Every field the tracking UI renders maps to a field on the Strapi
+// `live-expedition` content type (or its adventure/guide relations and
+// trip.* / shared.weather components). Nothing is hardcoded or demo-sourced.
+//
+// populate is listed explicitly (not '*') so the linked trail's slug —
+// needed to match /tracking?trail=<slug> to the right expedition — and the
+// guide's role come back, and the query string is built by hand for the
+// same serialisation reason noted on useAdventure() above.
+const LIVE_EXPEDITION_QUERY = [
+  'filters[status][$eq]=active',
+  'sort[0]=departureDate:desc',
+  'pagination[pageSize]=20',
+  'populate[adventure][fields][0]=title',
+  'populate[adventure][fields][1]=slug',
+  'populate[guide][fields][0]=name',
+  'populate[guide][fields][1]=avatar',
+  'populate[guide][fields][2]=role',
+  'populate[weather]=true',
+  'populate[geoRoute]=true',
+  'populate[team]=true',
+  'populate[checkpoints]=true',
+  'populate[feed]=true',
+].join('&')
+
+// Strapi decimal/integer fields can arrive as strings depending on the DB
+// driver (MySQL decimals do) — Google Maps rejects string lat/lng, and
+// toLocaleString() on null crashes SSR, so coerce once here.
+const toNum = (v) => (v === null || v === undefined || v === '' ? null : Number(v))
+
+export function normalizeExpedition(e) {
+  const adventure = e.adventure || null
+  return {
+    ...e,
+    // documentId is Strapi 5's stable public identifier — used for URLs
+    key: e.documentId || String(e.id),
+    adventure,
+    adventureTitle: adventure?.title || e.batchLabel || 'Expedition',
+    adventureSlug:  adventure?.slug || null,
+    guide: e.guide || null,
+    currentDay:       toNum(e.currentDay),
+    totalDays:        toNum(e.totalDays),
+    participants:     toNum(e.participants) ?? 0,
+    maxParticipants:  toNum(e.maxParticipants),
+    followers:        toNum(e.followers) ?? 0,
+    currentElevation: toNum(e.currentElevation),
+    distanceCovered:  toNum(e.distanceCovered) ?? 0,
+    totalDistance:    toNum(e.totalDistance),
+    elevationGain:    toNum(e.elevationGain),
+    elapsedHours:     toNum(e.elapsedHours),
+    weather: e.weather || {},
+    geoRoute: (e.geoRoute || [])
+      .map(p => ({ ...p, lat: toNum(p.lat), lng: toNum(p.lng) }))
+      .filter(p => Number.isFinite(p.lat) && Number.isFinite(p.lng)),
+    team:        e.team || [],
+    checkpoints: e.checkpoints || [],
+    // newest field post first
+    feed: [...(e.feed || [])].sort(
+      (a, b) => new Date(b.postedAt || 0) - new Date(a.postedAt || 0)
+    ),
+  }
+}
+
 export function useLiveExpeditions() {
-  return useFetch(() => `${strapiBase()}/api/live-expeditions`, {
+  return useFetch(() => `${strapiBase()}/api/live-expeditions?${LIVE_EXPEDITION_QUERY}`, {
     key: 'strapi-live-expeditions',
-    query: { populate: '*', 'filters[status][$eq]': 'active', 'pagination[pageSize]': 20 },
-    transform: unwrapList,
+    transform: (res) => unwrapList(res).map(normalizeExpedition),
     default: () => [],
   })
 }

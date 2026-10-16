@@ -291,6 +291,24 @@
       </div>
 
       <div class="field-block">
+        <label class="input-label">GPS Route (map waypoints)</label>
+        <p class="field-hint" style="margin-bottom:10px;">Drawn on the live tracking map in order. Mark exactly one point "Current" — that's where the team is now.</p>
+        <div class="repeat-card" v-for="(g, i) in expedition.geoRoute" :key="i">
+          <div class="repeat-card-top"><strong>Waypoint {{ i+1 }}</strong><button type="button" class="tag-remove" @click="expedition.geoRoute.splice(i,1)">✕</button></div>
+          <div class="form-grid">
+            <div class="field span-2"><label class="input-label">Label</label><input class="input" v-model="g.label" placeholder="e.g. Bujuku Valley" /></div>
+            <div class="field"><label class="input-label">Latitude</label><input class="input" type="number" step="0.0001" v-model.number="g.lat" placeholder="0.3633" /></div>
+            <div class="field"><label class="input-label">Longitude</label><input class="input" type="number" step="0.0001" v-model.number="g.lng" placeholder="29.9200" /></div>
+            <div class="field">
+              <label class="input-label">Status</label>
+              <select class="input" v-model="g.status"><option value="done">Done</option><option value="current">Current</option><option value="upcoming">Upcoming</option></select>
+            </div>
+          </div>
+        </div>
+        <button type="button" class="tag-add" @click="expedition.geoRoute.push({ label:'', lat:null, lng:null, status:'upcoming' })">+ Add Waypoint</button>
+      </div>
+
+      <div class="field-block">
         <label class="input-label">Team Members</label>
         <div class="repeat-card" v-for="(m, i) in expedition.team" :key="i">
           <div class="repeat-card-top"><strong>Member {{ i+1 }}</strong><button type="button" class="tag-remove" @click="expedition.team.splice(i,1)">✕</button></div>
@@ -532,7 +550,7 @@ function blankExpedition() {
     startTime: '', elapsedHours: null,
     weather: { condition: '', temp: '', wind: '', humidity: '' },
     image: '', mapImage: '',
-    team: [], checkpoints: [], feed: [],
+    geoRoute: [], team: [], checkpoints: [], feed: [],
   }
 }
 const expedition = reactive(blankExpedition())
@@ -543,10 +561,12 @@ function resetExpedition() { Object.assign(expedition, blankExpedition()); exped
 async function submitExpedition() {
   expeditionSaving.value = true; expeditionSuccess.value = false; expeditionError.value = null
   try {
-    const { adventureId, guideId, ...rest } = expedition
+    const { adventureId, guideId, geoRoute, ...rest } = expedition
+    // lat/lng are required on trip.geo-point — drop half-filled rows
+    const route = geoRoute.filter(g => Number.isFinite(g.lat) && Number.isFinite(g.lng))
     await $fetch('/api/cms/live-expeditions', {
       method: 'POST',
-      body: { data: { ...rest, adventure: adventureId, guide: guideId } },
+      body: { data: { ...rest, geoRoute: route, adventure: adventureId, guide: guideId } },
     })
     resetExpedition(); expeditionSuccess.value = true
   } catch (e) {

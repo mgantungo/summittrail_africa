@@ -29,6 +29,11 @@
               : upcomingAdventure?.slug ? { path: '/tracking', query: { trail: upcomingAdventure.slug } } : '/tracking'"
             class="btn btn-primary btn-sm"
           >📍 Live Tracking</NuxtLink>
+          <NuxtLink
+            v-if="upcomingBooking?.status === 'confirmed' && upcomingBooking?.live_expedition?.documentId"
+            :to="{ path: '/live/post', query: { expedition: upcomingBooking.live_expedition.documentId } }"
+            class="btn btn-ghost btn-sm"
+          >📸 Post Live Update</NuxtLink>
           <button class="btn btn-ghost btn-sm" @click="$emit('go','documents')">📄 Documents</button>
         </div>
       </div>

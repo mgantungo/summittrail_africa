@@ -41,5 +41,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const { passwordHash, ...safeCustomer } = customer
+  // Server-side session (httpOnly) for routes that act as this customer
+  setCustomerSession(event, safeCustomer)
   return { customer: safeCustomer }
 })

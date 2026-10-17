@@ -148,7 +148,7 @@
               <div class="ht-feed-body">
                 <p class="ht-feed-text">{{ item.text }}</p>
                 <div class="ht-feed-foot">
-                  <span class="ht-feed-author">{{ item.author }}</span>
+                  <span class="ht-feed-author">{{ item.author }}<span v-if="item.authorType === 'participant'" class="ht-feed-tag">Participant</span></span>
                   <span class="ht-feed-time" v-if="item.postedAt" :title="new Date(item.postedAt).toLocaleString()">{{ ago(item.postedAt) }}</span>
                 </div>
               </div>
@@ -453,10 +453,52 @@ function drawLastFix() {
   markers.push(m)
 }
 
+// Geotagged feed photos (guide and participant posts) as small pins;
+// clicking one shows the photo, comment and author.
+function drawPhotoPins() {
+  const pins = active.value?.photoPins || []
+  if (!gmap || !pins.length) return
+  pins.forEach((p) => {
+    const isParticipant = p.authorType === 'participant'
+    const m = new google.maps.Marker({
+      position: { lat: p.lat, lng: p.lng },
+      map: gmap,
+      zIndex: 5,
+      title: p.author || 'Photo',
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 5,
+        fillColor: isParticipant ? '#d4a843' : '#e8622a',
+        fillOpacity: 1,
+        strokeColor: '#0a0a08',
+        strokeWeight: 2,
+      },
+    })
+    // DOM nodes, not an HTML string — text comes from users
+    const box = document.createElement('div')
+    box.style.cssText = 'font-family:sans-serif;font-size:13px;color:#0a0a08;max-width:220px;'
+    const img = document.createElement('img')
+    img.src = p.image
+    img.alt = p.text || ''
+    img.loading = 'lazy'
+    img.style.cssText = 'width:220px;height:220px;object-fit:cover;display:block;margin-bottom:6px;'
+    const txt = document.createElement('div')
+    txt.textContent = p.text || ''
+    const by = document.createElement('div')
+    by.style.cssText = 'color:#555;margin-top:4px;font-size:12px;'
+    by.textContent = `${p.author || ''}${isParticipant ? ' · Participant' : ''}${p.postedAt ? ' · ' + ago(p.postedAt) : ''}`
+    box.append(img, txt, by)
+    const iw = new google.maps.InfoWindow({ content: box })
+    m.addListener('click', () => iw.open(gmap, m))
+    markers.push(m)
+  })
+}
+
 function drawRoute({ fit = false } = {}) {
   if (!gmap) return
   clearMapObjects()
   const pts = geoRoute.value
+  drawPhotoPins()
   drawLastFix()
   if (!pts.length) {
     if (fit && lastFix.value) { gmap.setCenter(lastFix.value); gmap.setZoom(12) }
@@ -586,6 +628,12 @@ watch(activeTrackId, async () => {
 watch(() => JSON.stringify([geoRoute.value, lastFix.value]), (next, prev) => {
   if (!gmap || next === prev) return
   drawRoute({ fit: !prev || prev === '[[],null]' })
+})
+
+// New geotagged photo posts → redraw pins, keep the viewer's camera
+watch(() => (active.value?.photoPins || []).map(p => p.postedAt).join('|'), (next, prev) => {
+  if (!gmap || next === prev) return
+  drawRoute()
 })
 
 // The map div only exists while an expedition is shown — if expeditions
@@ -834,6 +882,7 @@ onUnmounted(() => {
 .ht-feed-text   { font-size:13px; font-weight:300; color:var(--light); line-height:1.5; margin-bottom:8px; }
 .ht-feed-foot   { display:flex; justify-content:space-between; }
 .ht-feed-author { font-family:var(--font-condensed); font-size:13px; font-weight:700; color:var(--orange); }
+.ht-feed-tag    { margin-left:6px; padding:1px 5px; font-size:11px; letter-spacing:.5px; text-transform:uppercase; color:var(--gold); border:1px solid var(--gold); }
 .ht-feed-time   { font-family:var(--font-condensed); font-size:13px; color:var(--gray); }
 
 /* Right column */

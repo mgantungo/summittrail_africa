@@ -220,8 +220,11 @@ export function normalizeExpedition(e) {
     .map(p => ({ ...p, lat: toNum(p.lat), lng: toNum(p.lng) }))
     .filter(hasCoords)
 
-  // Most recent GPS fix the guide sent with a field post
-  const lastFix = feed.find(hasCoords) || null
+  // Most recent GPS fix the guide sent with a field post (participant photo
+  // posts are mapped as photo pins, so they don't move the team position
+  // unless no guide post has coordinates yet)
+  const lastFix = feed.find(f => hasCoords(f) && f.authorType !== 'participant') || feed.find(hasCoords) || null
+  const photoPins = feed.filter(f => f.image && hasCoords(f)).slice(0, 40)
 
   return {
     ...e,
@@ -244,6 +247,7 @@ export function normalizeExpedition(e) {
     weather: e.weather || {},
     route: cpRoute.length ? cpRoute : legacyRoute,
     lastFix: lastFix ? { lat: lastFix.lat, lng: lastFix.lng, postedAt: lastFix.postedAt } : null,
+    photoPins,
     lastFieldUpdateAt: e.lastFieldUpdateAt || null,
     team: e.team || [],
     checkpoints,

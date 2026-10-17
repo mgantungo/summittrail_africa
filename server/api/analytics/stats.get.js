@@ -6,7 +6,8 @@ const sessions = globalThis.__analyticsSessions ?? []
 const nlSubscribers = globalThis.__nlSubscribers ?? []
 const pushSubscribers = globalThis.__pushSubscribers ?? []
 
-export default defineEventHandler(async () => {
+export default defineEventHandler(async (event) => {
+  await requireAdmin(event) // back-office only (Admin Portal role)
   // Country breakdown from sessions
   const countryMap = {}
   sessions.forEach(s => {

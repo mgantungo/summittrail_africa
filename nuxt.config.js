@@ -33,7 +33,6 @@ export default defineNuxtConfig({
     googleAnalyticsId:  process.env.GOOGLE_ANALYTICS_ID    || '',
     stripePublicKey: process.env.STRIPE_PUBLIC_KEY || '',
     adminEmail:    process.env.NUXT_PUBLIC_ADMIN_EMAIL    || 'admin@summittrail.ug',
-    adminPassword: process.env.NUXT_PUBLIC_ADMIN_PASSWORD || 'SummitTrail2025!',
 
     // NEW — CMS base URL, public because the browser reads adventures/
     // guides/vehicles/stories/reviews/live-expeditions directly from it
@@ -195,7 +194,6 @@ export default defineNuxtConfig({
           'connect-src': [
             "'self'",
             'https://summittrail.africa',
-            'https://cms.summittrai.africa',
             'https://summittrail.africa.newvision.co.ug',
             'http://summittrail.africa.newvision.co.ug',
             'https://*.newvision.co.ug',

@@ -6,6 +6,7 @@ import webpush from 'web-push'
 const subscribers = globalThis.__pushSubscribers ?? (globalThis.__pushSubscribers = [])
 
 export default defineEventHandler(async (event) => {
+  await requireAdmin(event) // back-office only (Admin Portal role)
   const config = useRuntimeConfig()
 
   // Validate VAPID keys are present

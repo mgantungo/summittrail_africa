@@ -11,11 +11,11 @@
 
       <form class="al-form" @submit.prevent="submit">
         <div class="al-field">
-          <label class="input-label">Email Address</label>
+          <label class="input-label">Email or username</label>
           <input
             class="input"
             v-model="form.email"
-            type="email"
+            type="text"
             placeholder="you@summittrail.africa"
             autocomplete="username"
             required
@@ -63,8 +63,9 @@
 <script setup>
 // app/pages/admin/login.vue
 //
-// Admin sign-in. Credentials are verified server-side by
-// /api/auth/admin-login — nothing secret is shipped to the browser.
+// Admin sign-in. Admins are CMS users with the "Admin Portal" role
+// (Content Manager → User). Verified server-side by /api/auth/admin-login;
+// the session is an httpOnly cookie.
 import { useProfileStore } from '~/stores/profile'
 
 definePageMeta({ layout: false })  // no nav/footer on login page
@@ -74,9 +75,12 @@ useHead({ title: 'Admin Login – Summit Trail' })
 const profile = useProfileStore()
 const router  = useRouter()
 
-// If already logged in as admin, go straight to dashboard
-onMounted(() => {
-  if (profile.isAdmin) router.replace('/admin')
+// Already signed in (server-side session)? Go straight to the dashboard
+onMounted(async () => {
+  try {
+    await $fetch('/api/auth/admin-me')
+    router.replace('/admin')
+  } catch { /* not signed in */ }
 })
 
 const form   = reactive({ email: '', password: '' })

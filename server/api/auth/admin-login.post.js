@@ -1,47 +1,36 @@
 // server/api/auth/admin-login.post.js
 //
-// Verifies the admin email + password on the server (server-only
-// runtimeConfig.adminPassword — never sent to the browser). Rate-limited
-// per IP; constant-time comparison.
-
-import { createHash, timingSafeEqual } from 'node:crypto'
-
-// Hash first so both buffers are the same length for timingSafeEqual
-const digest = (v) => createHash('sha256').update(String(v ?? '')).digest()
-const same = (a, b) => timingSafeEqual(digest(a), digest(b))
+// Back-office sign-in for summittrail.africa/admin. Admins are Strapi
+// users-permissions users with the "Admin Portal" role — add them in the
+// CMS: Content Manager → User → Create new entry (confirmed = true,
+// role = Admin Portal). The Strapi JWT is kept in an httpOnly cookie.
 
 export default defineEventHandler(async (event) => {
   rateLimit(event, 'admin-login', { max: 5, windowMs: 10 * 60_000 })
 
-  const cfg = useRuntimeConfig(event)
   const { email, password } = (await readBody(event)) || {}
   if (!email || !password) {
     throw createError({ statusCode: 400, statusMessage: 'Email and password are required' })
   }
 
-  const adminEmail = String(cfg.public.adminEmail || '').trim().toLowerCase()
-  const adminPassword = String(cfg.adminPassword || '')
-  if (!adminEmail || !adminPassword) {
-    throw createError({ statusCode: 503, statusMessage: 'Admin sign-in is not configured' })
+  let jwt
+  try {
+    const res = await $fetch(`${strapiServerBase(event)}/api/auth/local`, {
+      method: 'POST',
+      body: { identifier: String(email).trim(), password: String(password) },
+    })
+    jwt = res?.jwt
+  } catch {
+    jwt = null
   }
 
-  const ok = same(String(email).trim().toLowerCase(), adminEmail) & same(password, adminPassword)
-  if (!ok) {
+  const admin = jwt ? await resolveAdmin(event, jwt) : null
+  if (!admin) {
     await new Promise((r) => setTimeout(r, 400)) // slow down guessing a little
-    throw createError({ statusCode: 401, statusMessage: 'Invalid email or password. Check your credentials and try again.' })
+    // Same message whether the password is wrong or the account isn't an admin
+    throw createError({ statusCode: 401, statusMessage: 'Invalid email or password, or this account has no admin access.' })
   }
 
-  return {
-    user: {
-      id: 'admin-001',
-      name: 'Admin',
-      email: adminEmail,
-      role: 'admin',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80',
-      level: 'Administrator',
-      summitPoints: 0,
-      totalTrips: 0,
-      upcomingTrips: 0,
-    },
-  }
+  setAdminSession(event, jwt)
+  return { user: admin }
 })

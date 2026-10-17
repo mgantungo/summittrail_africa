@@ -7,6 +7,12 @@ export default defineNuxtConfig({
 
   modules: ['@pinia/nuxt'],
 
+  // Register components by file name only (<LoginModal>, <ThemeToggle>,
+  // <ImageUploadInput>…), which is how every template refers to them.
+  // With Nuxt's default folder prefixes they'd be <SharedLoginModal> etc.,
+  // so those tags rendered nothing (e.g. the nav's Sign In did nothing).
+  components: [{ path: '~/components', pathPrefix: false }],
+
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {

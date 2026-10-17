@@ -1,0 +1,741 @@
+2026-07-14T22:15:40: [request error] [unhandled] [GET] http://summittrail.newvision.co.ug/_nuxt/entry.CDF0Ag4V.css
+ H3Error: ENOENT: no such file or directory, open '/var/www/summittrail/.output/public/_nuxt/entry.CDF0Ag4V.css'
+    at open (node:internal/fs/promises:641:25)
+    ... 2 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1997:7) {
+  cause: Error: ENOENT: no such file or directory, open '/var/www/summittrail/.output/public/_nuxt/entry.CDF0Ag4V.css'
+      at open (node:internal/fs/promises:641:25)
+      at Object.readFile (node:internal/fs/promises:1245:14)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1719:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1997:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/var/www/summittrail/.output/public/_nuxt/entry.CDF0Ag4V.css'
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-07-14T22:15:40: [request error] [unhandled] [GET] http://summittrail.newvision.co.ug/_nuxt/huD_O8-F.js
+ H3Error: ENOENT: no such file or directory, open '/var/www/summittrail/.output/public/_nuxt/huD_O8-F.js'
+    at open (node:internal/fs/promises:641:25)
+    ... 2 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1997:7) {
+  cause: Error: ENOENT: no such file or directory, open '/var/www/summittrail/.output/public/_nuxt/huD_O8-F.js'
+      at open (node:internal/fs/promises:641:25)
+      at Object.readFile (node:internal/fs/promises:1245:14)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1719:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1997:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/var/www/summittrail/.output/public/_nuxt/huD_O8-F.js'
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-07-14T22:15:40: [request error] [unhandled] [GET] http://summittrail.newvision.co.ug/_nuxt/Buc6Ho1t.js
+ H3Error: ENOENT: no such file or directory, open '/var/www/summittrail/.output/public/_nuxt/Buc6Ho1t.js'
+    at open (node:internal/fs/promises:641:25)
+    ... 2 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1997:7) {
+  cause: Error: ENOENT: no such file or directory, open '/var/www/summittrail/.output/public/_nuxt/Buc6Ho1t.js'
+      at open (node:internal/fs/promises:641:25)
+      at Object.readFile (node:internal/fs/promises:1245:14)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1719:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1997:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/var/www/summittrail/.output/public/_nuxt/Buc6Ho1t.js'
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-07-14T22:15:40: [request error] [unhandled] [GET] http://summittrail.newvision.co.ug/_nuxt/BtvS4Ooy.js
+ H3Error: ENOENT: no such file or directory, open '/var/www/summittrail/.output/public/_nuxt/BtvS4Ooy.js'
+    at open (node:internal/fs/promises:641:25)
+    ... 2 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1997:7) {
+  cause: Error: ENOENT: no such file or directory, open '/var/www/summittrail/.output/public/_nuxt/BtvS4Ooy.js'
+      at open (node:internal/fs/promises:641:25)
+      at Object.readFile (node:internal/fs/promises:1245:14)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1719:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1997:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/var/www/summittrail/.output/public/_nuxt/BtvS4Ooy.js'
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-07-14T22:16:00: [request error] [unhandled] [GET] http://summittrail.newvision.co.ug/_nuxt/HomeLiveTracking.DmLsfStD.css
+ H3Error: ENOENT: no such file or directory, open '/var/www/summittrail/.output/public/_nuxt/HomeLiveTracking.DmLsfStD.css'
+    at open (node:internal/fs/promises:641:25)
+    ... 2 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1997:7) {
+  cause: Error: ENOENT: no such file or directory, open '/var/www/summittrail/.output/public/_nuxt/HomeLiveTracking.DmLsfStD.css'
+      at open (node:internal/fs/promises:641:25)
+      at Object.readFile (node:internal/fs/promises:1245:14)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1719:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1997:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/var/www/summittrail/.output/public/_nuxt/HomeLiveTracking.DmLsfStD.css'
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-07-14T22:16:00: [request error] [unhandled] [GET] http://summittrail.newvision.co.ug/_nuxt/Buc6Ho1t.js
+ H3Error: ENOENT: no such file or directory, open '/var/www/summittrail/.output/public/_nuxt/Buc6Ho1t.js'
+    at open (node:internal/fs/promises:641:25)
+    ... 2 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1997:7) {
+  cause: Error: ENOENT: no such file or directory, open '/var/www/summittrail/.output/public/_nuxt/Buc6Ho1t.js'
+      at open (node:internal/fs/promises:641:25)
+      at Object.readFile (node:internal/fs/promises:1245:14)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1719:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1997:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/var/www/summittrail/.output/public/_nuxt/Buc6Ho1t.js'
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-07-14T22:16:00: [request error] [unhandled] [GET] http://summittrail.newvision.co.ug/_nuxt/GSQGVLv2.js
+ H3Error: ENOENT: no such file or directory, open '/var/www/summittrail/.output/public/_nuxt/GSQGVLv2.js'
+    at open (node:internal/fs/promises:641:25)
+    ... 2 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1997:7) {
+  cause: Error: ENOENT: no such file or directory, open '/var/www/summittrail/.output/public/_nuxt/GSQGVLv2.js'
+      at open (node:internal/fs/promises:641:25)
+      at Object.readFile (node:internal/fs/promises:1245:14)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1719:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1997:7) {
+    errno: -2,
+    code: 'ENOENT',
+    syscall: 'open',
+    path: '/var/www/summittrail/.output/public/_nuxt/GSQGVLv2.js'
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-07-14T22:23:24: Error: Cannot find module '/var/www/summittrail/.output/server/chunks/build/_slug_-Bo8M4xBe.mjs' imported from /var/www/summittrail/.output/server/chunks/build/server.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:859:10)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at ModuleLoader.#cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)
+    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)
+    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)
+    at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///var/www/summittrail/.output/server/chunks/build/_slug_-Bo8M4xBe.mjs'
+}
+2026-07-14T22:23:24: Error: Cannot find module '/var/www/summittrail/.output/server/chunks/build/_slug_-Bo8M4xBe.mjs' imported from /var/www/summittrail/.output/server/chunks/build/server.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    at moduleResolve (node:internal/modules/esm/resolve:859:10)
+    at defaultResolve (node:internal/modules/esm/resolve:983:11)
+    at ModuleLoader.#cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+    at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+    at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)
+    at TracingChannel.tracePromise (node:diagnostics_channel:350:14)
+    at ModuleLoader.import (node:internal/modules/esm/loader:663:21)
+    at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31) {
+  code: 'ERR_MODULE_NOT_FOUND',
+  url: 'file:///var/www/summittrail/.output/server/chunks/build/_slug_-Bo8M4xBe.mjs'
+}
+2026-07-14T22:23:24: [request error] [unhandled] [GET] http://summittrail.newvision.co.ug/__nuxt_error?error=true&url=%2Fadventures%2Fnile-source-overland&statusCode=500&statusMessage=Server+Error&message=Cannot+find+module+%27%2Fvar%2Fwww%2Fsummittrail%2F.output%2Fserver%2Fchunks%2Fbuild%2F_slug_-Bo8M4xBe.mjs%27+imported+from+%2Fvar%2Fwww%2Fsummittrail%2F.output%2Fserver%2Fchunks%2Fbuild%2Fserver.mjs
+ H3Error: Cannot find module '/var/www/summittrail/.output/server/chunks/build/error-styles.Dr-dKxZn.mjs' imported from /var/www/summittrail/.output/server/chunks/build/styles.mjs
+    at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+    ... 8 lines matching cause stack trace ...
+    at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31) {
+  cause: Error: Cannot find module '/var/www/summittrail/.output/server/chunks/build/error-styles.Dr-dKxZn.mjs' imported from /var/www/summittrail/.output/server/chunks/build/styles.mjs
+      at finalizeResolution (node:internal/modules/esm/resolve:274:11)
+      at moduleResolve (node:internal/modules/esm/resolve:859:10)
+      at defaultResolve (node:internal/modules/esm/resolve:983:11)
+      at ModuleLoader.#cachedDefaultResolve (node:internal/modules/esm/loader:731:20)
+      at ModuleLoader.resolve (node:internal/modules/esm/loader:708:38)
+      at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:310:38)
+      at onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:664:36)
+      at TracingChannel.tracePromise (node:diagnostics_channel:350:14)
+      at ModuleLoader.import (node:internal/modules/esm/loader:663:21)
+      at defaultImportModuleDynamicallyForModule (node:internal/modules/esm/utils:222:31) {
+    code: 'ERR_MODULE_NOT_FOUND',
+    url: 'file:///var/www/summittrail/.output/server/chunks/build/error-styles.Dr-dKxZn.mjs'
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-09-18T21:15:27: [request error] [unhandled] [POST] http://summittrail.africa/api/newsletter/subscribe
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/newsletter-subscribers?filters%5Bemail%5D%5B$eq%5D=jp@summittrail.africa": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2595:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2653:15)
+      at Object.handler (file:///var/www/summittrail/server/api/newsletter/subscribe.post.js:20:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1812:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-09-18T21:16:40: [request error] [unhandled] [POST] http://summittrail.africa/api/bookings/create
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/customers?filters%5Bemail%5D%5B$eq%5D=jp@summittrail.africa": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2595:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2653:15)
+      at Object.handler (file:///var/www/summittrail/server/api/bookings/create.post.js:22:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1812:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-09-18T21:18:58: [request error] [unhandled] [POST] http://summittrail.africa/api/bookings/create
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/customers?filters%5Bemail%5D%5B$eq%5D=jp@summittrail.africa": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2595:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2653:15)
+      at Object.handler (file:///var/www/summittrail/server/api/bookings/create.post.js:22:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1812:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-09-19T08:32:47: [request error] [unhandled] [POST] http://summittrail.africa/api/bookings/create
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/customers?filters%5Bemail%5D%5B$eq%5D=jp@Summittrail.africa": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2595:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2653:15)
+      at Object.handler (file:///var/www/summittrail/server/api/bookings/create.post.js:22:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1812:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-09-19T10:26:29: [request error] [unhandled] [POST] http://summittrail.africa/api/newsletter/subscribe
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/newsletter-subscribers?filters%5Bemail%5D%5B$eq%5D=jp@summittrail.africa": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2595:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2653:15)
+      at Object.handler (file:///var/www/summittrail/server/api/newsletter/subscribe.post.js:20:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1812:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-09-20T17:48:00: [request error] [unhandled] [POST] http://summittrail.africa/api/newsletter/subscribe
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/newsletter-subscribers?filters%5Bemail%5D%5B$eq%5D=jp@summittrail.africa": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2595:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2653:15)
+      at Object.handler (file:///var/www/summittrail/server/api/newsletter/subscribe.post.js:20:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1812:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-10-16T14:15:11: [request error] [unhandled] [POST] http://summittrail.africa/api/bookings/create
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/customers?filters%5Bemail%5D%5B$eq%5D=vmujuzi@newvision.co.ug": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2595:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2653:15)
+      at Object.handler (file:///var/www/summittrail/server/api/bookings/create.post.js:22:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1812:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-10-16T14:15:44: [request error] [unhandled] [POST] http://summittrail.africa/api/bookings/create
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/customers?filters%5Bemail%5D%5B$eq%5D=vmujuzi@newvision.co.ug": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2595:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2653:15)
+      at Object.handler (file:///var/www/summittrail/server/api/bookings/create.post.js:22:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1812:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-10-16T14:19:27: [request error] [unhandled] [POST] http://summittrail.africa/api/bookings/create
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/customers?filters%5Bemail%5D%5B$eq%5D=vmujuzi@newvision.co.ug": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2595:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2653:15)
+      at Object.handler (file:///var/www/summittrail/server/api/bookings/create.post.js:22:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1812:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-10-16T14:21:09: [request error] [unhandled] [POST] http://summittrail.africa/api/bookings/create
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/customers?filters%5Bemail%5D%5B$eq%5D=vmujuzi@newvision.co.ug": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2595:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2653:15)
+      at Object.handler (file:///var/www/summittrail/server/api/bookings/create.post.js:22:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1812:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-10-16T14:23:57: [request error] [unhandled] [POST] http://summittrail.africa/api/bookings/create
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/customers?filters%5Bemail%5D%5B$eq%5D=vmujuzi@newvision.co.ug": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2595:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2653:15)
+      at Object.handler (file:///var/www/summittrail/server/api/bookings/create.post.js:22:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1812:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-10-16T14:26:35: [request error] [unhandled] [POST] http://summittrail.africa/api/bookings/create
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/customers?filters%5Bemail%5D%5B$eq%5D=vmujuzi@newvision.co.ug": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2595:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2653:15)
+      at Object.handler (file:///var/www/summittrail/server/api/bookings/create.post.js:22:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1812:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-10-16T14:28:36: [request error] [unhandled] [POST] http://summittrail.africa/api/bookings/create
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/customers?filters%5Bemail%5D%5B$eq%5D=vmujuzi@newvision.co.ug": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2595:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2653:15)
+      at Object.handler (file:///var/www/summittrail/server/api/bookings/create.post.js:22:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1812:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-10-16T14:32:25: [request error] [unhandled] [POST] http://summittrail.africa/api/bookings/create
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/customers?filters%5Bemail%5D%5B$eq%5D=vmujuzi@newvision.co.ug": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2595:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2653:15)
+      at Object.handler (file:///var/www/summittrail/server/api/bookings/create.post.js:22:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1812:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-10-16T14:37:53: [request error] [unhandled] [POST] http://summittrail.africa/api/bookings/create
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/customers?filters%5Bemail%5D%5B$eq%5D=vmujuzi@newvision.co.ug": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2595:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2607:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2653:15)
+      at Object.handler (file:///var/www/summittrail/server/api/bookings/create.post.js:22:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:1812:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2090:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-10-16T16:14:48: [request error] [unhandled] [POST] http://summittrail.newvision.co.ug/api/newsletter/subscribe
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/newsletter-subscribers?filters%5Bemail%5D%5B$eq%5D=Jp@summittrail.africa": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2859:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2342:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2847:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2859:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2905:15)
+      at Object.handler (file:///var/www/summittrail/server/api/newsletter/subscribe.post.js:20:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2064:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2342:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-10-16T16:41:16: [request error] [unhandled] [POST] http://summittrail.newvision.co.ug/api/newsletter/subscribe
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/newsletter-subscribers?filters%5Bemail%5D%5B$eq%5D=jp@summittrail.africa": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2859:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2342:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2847:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2859:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2905:15)
+      at Object.handler (file:///var/www/summittrail/server/api/newsletter/subscribe.post.js:20:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2064:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2342:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}
+2026-10-17T06:06:30: [useAdventure] No adventure found for slug "rwenzori-survival". Checked 0 total matches. If this adventure exists in Strapi, confirm it's PUBLISHED (not just saved as a draft) — draft entries don't show via the public API.
+2026-10-17T07:24:16: [request error] [unhandled] [POST] http://summittrail.newvision.co.ug/api/newsletter/subscribe
+ FetchError: [GET] "https://cms.summittrail.visiongroup.co.ug/api/newsletter-subscribers?filters%5Bemail%5D%5B$eq%5D=pikanza@gmail.com": <no response> fetch failed
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2859:14)
+    ... 3 lines matching cause stack trace ...
+    at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2342:7) {
+  cause: TypeError: fetch failed
+      at node:internal/deps/undici/undici:14900:13
+      at processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2847:26)
+      at $fetchRaw2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2859:14)
+      at $fetch2 (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2905:15)
+      at Object.handler (file:///var/www/summittrail/server/api/newsletter/subscribe.post.js:20:1)
+      at Object.handler (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2064:19)
+      at Server.toNodeHandle (file:///var/www/summittrail/.output/server/chunks/nitro/nitro.mjs:2342:7) {
+    [cause]: ConnectTimeoutError: Connect Timeout Error (attempted address: cms.summittrail.visiongroup.co.ug:443, timeout: 10000ms)
+        at onConnectTimeout (node:internal/deps/undici/undici:2718:28)
+        at Immediate._onImmediate (node:internal/deps/undici/undici:2699:11)
+        at processImmediate (node:internal/timers:485:21) {
+      code: 'UND_ERR_CONNECT_TIMEOUT',
+      [Symbol(undici.error.UND_ERR)]: true,
+      [Symbol(undici.error.UND_ERR_CONNECT_TIMEOUT)]: true
+    }
+  },
+  statusCode: 500,
+  fatal: false,
+  unhandled: true,
+  statusMessage: undefined,
+  data: undefined
+}

@@ -195,6 +195,7 @@ export default defineNuxtConfig({
           'connect-src': [
             "'self'",
             'https://summittrail.africa',
+            'https://cms.summittrai.africa',
             'https://summittrail.africa.newvision.co.ug',
             'http://summittrail.africa.newvision.co.ug',
             'https://*.newvision.co.ug',

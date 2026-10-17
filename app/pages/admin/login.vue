@@ -1,4 +1,3 @@
-<!--app/pages/admin/login.vue-->
 <template>
   <div class="admin-login-page">
     <div class="al-card">
@@ -17,7 +16,7 @@
             class="input"
             v-model="form.email"
             type="email"
-            placeholder="admin@summittrail.ug"
+            placeholder="you@summittrail.africa"
             autocomplete="username"
             required
           />
@@ -57,29 +56,15 @@
         <span>Not an admin?</span>
         <NuxtLink to="/">Back to site</NuxtLink>
       </div>
-
-      <!-- Demo credentials helper -->
-      <div class="al-demo">
-        <div class="al-demo-label">// Demo credentials</div>
-        <div class="al-demo-row">
-          <span>Email:</span>
-          <code @click="form.email = config.public.adminEmail" class="al-demo-val">
-            {{ config.public.adminEmail }}
-          </code>
-        </div>
-        <div class="al-demo-row">
-          <span>Password:</span>
-          <code @click="form.password = config.public.adminPassword" class="al-demo-val">
-            {{ config.public.adminPassword }}
-          </code>
-        </div>
-        <div class="al-demo-tip">Click a value to fill it in</div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
+// app/pages/admin/login.vue
+//
+// Admin sign-in. Credentials are verified server-side by
+// /api/auth/admin-login — nothing secret is shipped to the browser.
 import { useProfileStore } from '~/stores/profile'
 
 definePageMeta({ layout: false })  // no nav/footer on login page
@@ -88,7 +73,6 @@ useHead({ title: 'Admin Login – Summit Trail' })
 
 const profile = useProfileStore()
 const router  = useRouter()
-const config  = useRuntimeConfig()
 
 // If already logged in as admin, go straight to dashboard
 onMounted(() => {
@@ -104,32 +88,17 @@ async function submit() {
   error.value   = ''
   loading.value = true
 
-  // Small delay so the button feedback is visible
-  await new Promise(r => setTimeout(r, 500))
-
-  const validEmail    = config.public.adminEmail
-  const validPassword = config.public.adminPassword
-
-  if (
-    form.email.trim().toLowerCase() === validEmail.toLowerCase() &&
-    form.password === validPassword
-  ) {
-    // Log in as admin
-    profile.login({
-      id:   'admin-001',
-      name: 'Admin',
-      email: form.email,
-      role: 'admin',
-      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80',
-      level: 'Administrator',
-      summitPoints: 0,
-      totalTrips: 0,
-      upcomingTrips: 0,
+  try {
+    const { user } = await $fetch('/api/auth/admin-login', {
+      method: 'POST',
+      body: { email: form.email.trim(), password: form.password },
     })
+    form.password = ''
+    profile.login(user)
     profile.logAction({ type: 'auth', label: 'Admin login', route: '/admin' })
     router.replace('/admin')
-  } else {
-    error.value = 'Invalid email or password. Check your credentials and try again.'
+  } catch (e) {
+    error.value = e?.data?.statusMessage || 'Invalid email or password. Check your credentials and try again.'
     loading.value = false
   }
 }
@@ -249,47 +218,6 @@ async function submit() {
   transition: opacity .2s;
 }
 .al-hint a:hover { opacity: 0.8; }
-
-/* Demo credentials box */
-.al-demo {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--orange);
-  padding: 16px 18px;
-}
-.al-demo-label {
-  font-family: var(--font-condensed);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: var(--orange);
-  margin-bottom: 10px;
-}
-.al-demo-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 6px;
-  font-family: var(--font-condensed);
-  font-size: 13px;
-  color: var(--gray);
-}
-.al-demo-val {
-  font-family: monospace;
-  font-size: 13px;
-  color: var(--white);
-  background: var(--muted);
-  padding: 2px 8px;
-  cursor: pointer;
-  transition: background .15s;
-}
-.al-demo-val:hover { background: var(--orange); color: var(--black); }
-.al-demo-tip {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 6px;
-}
 
 /* Error shake animation */
 .shake-enter-active { animation: shake 0.4s ease; }
